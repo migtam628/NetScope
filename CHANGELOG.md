@@ -5,6 +5,7 @@
 - Fixed `pip install -e firmware` (version source), which failed in the first CI run.
 - Added `docs/15-dev-kit-spike.md` and a results template; corrected the spike budget from about $400 to $700-$900.
 - Board floorplan: two boards (88 x 88 mm main, 88 x 56 mm keypad/USB-C) with every netlist part placed and checked for fit, height and isolation spacing. Not a routed layout.
+- microSD moved to a board tab with a slot in the side wall; power key given a recessed front opening.
 - Housing model now includes both boards, standoffs, relocated LED openings and buzzer vents; board-vs-shell-vs-battery clash checks; shaded review images.
 - Block schematics as PDF for the main board (10 sheets) and the bench kit (7 sheets), generated from the netlists by `tools/render_schematic.py`. Not KiCad, not ERC-checked.
 - Coprocessor: command dispatcher with relay/voltage interlocks, host-tested and cross-checked against the Python protocol code.

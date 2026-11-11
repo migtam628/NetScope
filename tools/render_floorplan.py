@@ -79,7 +79,11 @@ def check(fp, nl):
                 board_of.setdefault(p["ref"], bname)
             x0, y0, x1, y1 = rect(p)
             m = R["edge_margin"]
-            if "over" not in p["flags"] and (x0 < -bw / 2 + m or x1 > bw / 2 - m
+            lo_x, hi_x = -bw / 2, bw / 2
+            for tx0, ty0, tx1, ty1 in b.get("tabs", []):   # a part wholly within a tab's Y span may use it
+                if y0 >= ty0 and y1 <= ty1:
+                    lo_x, hi_x = min(lo_x, tx0), max(hi_x, tx1)
+            if "over" not in p["flags"] and (x0 < lo_x + m or x1 > hi_x - m
                                              or y0 < -bh / 2 + m or y1 > bh / 2 - m):
                 errs.append(f"{bname}: {p['ref']} is outside the board outline / edge margin")
             sides = "FB" if "tht" in p["flags"] else p["side"]
@@ -112,7 +116,8 @@ def check(fp, nl):
                     errs.append(f"{bname}: {a['ref']} ({da}) and {c['ref']} ({dc}) are {g:.2f} mm "
                                 f"apart ({where}); isolation rule is {R['isolation']} mm")
         used = sum(p["w"] * p["h"] for p in real if "tht" not in p["flags"] or p["z"] > 0)
-        notes.append(f"{bname}: {bw} x {bh} mm = {bw * bh / 100:.1f} cm2; placed part area "
+        area = bw * bh + sum((x1 - x0) * (y1 - y0) for x0, y0, x1, y1 in b.get("tabs", []))
+        notes.append(f"{bname}: {bw} x {bh} mm = {area / 100:.1f} cm2 with tabs; placed part area "
                      f"{used / 100:.1f} cm2 = {100 * used / (2 * bw * bh):.0f}% of both sides "
                      f"(before passives and routing)")
     for ref in comps:
@@ -151,6 +156,9 @@ def draw(fp, nl) -> list[str]:
                              f"battery cells directly behind: parts under 1 mm only</text>")
             o.append(f"<rect x='{ox - bw * S / 2}' y='{oy - bh * S / 2}' width='{bw * S}' height='{bh * S}' "
                      f"rx='{2 * S}' fill='none' stroke='#14532d' stroke-width='3'/>")
+            for tx0, ty0, tx1, ty1 in b.get("tabs", []):
+                o.append(f"<rect x='{ox + tx0 * S}' y='{oy - ty1 * S}' width='{(tx1 - tx0) * S}' "
+                         f"height='{(ty1 - ty0) * S}' fill='#fff' stroke='#14532d' stroke-width='3'/>")
             legend = []
             for p in ps:
                 if "hole" in p["flags"]:

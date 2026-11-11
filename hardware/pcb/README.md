@@ -8,10 +8,10 @@
 
 | Board | Size | Layers | Carries |
 |---|---|---|---|
-| Main | 88 x 88 mm | 6 | Processor module, both Ethernet ports, relays, PoE island, wiremap front end, coprocessor, charger, 5 V boost, M.2, microSD |
+| Main | 88 x 88 mm + 6 x 15 mm card tab | 6 | Processor module, both Ethernet ports, relays, PoE island, wiremap front end, coprocessor, charger, 5 V boost, M.2, microSD |
 | Keypad and USB-C | 88 x 56 mm | 2 | Eight keys + power key, four LEDs, buzzer, USB-C |
 
-Total 126.7 cm2, against 174 cm2 for a single board long enough to reach both the RJ45 jacks and the USB-C port. No feature was removed. The two boards join with a 30-way signal cable and a 20-way power cable (flat flex); nine nets cross (`floorplan_report.md`).
+Total 127.6 cm2, against 174 cm2 for a single board long enough to reach both the RJ45 jacks and the USB-C port. No feature was removed. The two boards join with a 30-way signal cable and a 20-way power cable (flat flex); nine nets cross (`floorplan_report.md`).
 
 The earlier single 88 x 150 mm outline in the CAD could not have worked: it stopped short of the keys and the USB-C port.
 
@@ -25,8 +25,8 @@ Inside the outline; no overlaps on a side; through-hole parts block both sides; 
 
 - **Part envelopes are package-class sizes**, not the selected parts' land patterns. 14 parts have no part number yet.
 - **Small passives are not placed.** Several hundred capacitors and resistors have to fit in the remaining area.
-- **microSD is not reachable from outside** in this placement: the socket is on the back of the main board, so a card can only be changed with the case open. Making it removable means moving the socket to a board edge next to a wall slot. Not solved.
-- **Power key has no opening in the shell yet.**
+- **microSD slot is a concept.** The socket now sits on a 6 x 15 mm tab at the main board's right edge, in line with a slot through the side wall and a window in the bumper, so a card can be changed without opening the case. Card protrusion, the latch travel of the chosen socket and a dust plug are not worked out, and the slot leaves a thin section at the shell split line.
+- **Power key** is now a ninth front key in a smaller recessed opening. Accidental-press protection (long press in firmware) is assumed.
 - **PoE load resistors stand upright** against a metal fin to fit; the thermal path to the rear shell is not designed or tested.
 - **Display cable position is assumed.** The display's connector location was not taken from its mechanical drawing.
 - **Front-side parts must be 1.5 mm or lower.** The bridge diodes and a few ICs need low-profile package variants; confirm when parts are selected.

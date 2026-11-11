@@ -52,6 +52,9 @@ PCB_T = 1.6                          # board outlines and parts come from hardwa
 LED_Y = -48.0                       # status LEDs sit between the display and the keys
 VENT_XY = (37.5, -77.0)             # buzzer is on the front of the lower board
 POST_R = 3.0
+POWER_KEY = (38.0, -55.0)           # recessed opening, smaller than the other keys
+SD_Y, SD_SLOT_W, SD_SLOT_H = 15.7, 14.0, 2.6   # microSD slot in the right-hand wall
+SD_Z = Z_FRONT - WALL - 8.0 - 2.0 - 1.6 - 1.0   # card plane: 1 mm behind the board (MODULE_T = 8)
 
 # ---- depth stack, front to back (everything hangs off these) -------------------
 Z_DISPLAY = Z_FRONT - WALL - MODULE_T / 2
@@ -98,6 +101,8 @@ def front_shell() -> cq.Workplane:
     holes = (cq.Workplane("XY").workplane(offset=Z_FRONT - WALL - 1).pushPoints(keys)
              .circle(KEY_D / 2).extrude(WALL + 2))
     f = f.cut(holes)
+    f = f.cut(cq.Workplane("XY").workplane(offset=Z_FRONT - WALL - 1).center(*POWER_KEY)
+              .circle(3.5).extrude(WALL + 2))
     # status LED light-pipe holes between the display and the keys
     leds = (cq.Workplane("XY").workplane(offset=Z_FRONT - WALL - 1)
             .pushPoints([(x, LED_Y) for x in (-12, -4, 4, 12)]).circle(1.25)
@@ -138,6 +143,8 @@ def rear_shell() -> cq.Workplane:
     usb = cq.Workplane("XZ").center(0, USBC_Z).rect(USBC_W, USBC_H).extrude(12) \
         .edges("|Y").fillet(1.6).translate((0, -H / 2 + 12 - 3, 0))
     r = r.cut(usb)
+    # microSD slot through the right-hand wall, in line with the socket on the board tab
+    r = r.cut(cq.Workplane("XY").box(8.0, SD_SLOT_W, SD_SLOT_H).translate((W / 2 - 2.0, SD_Y, SD_Z)))
     # battery door opening
     r = r.cut(cq.Workplane("XY").box(DOOR_W, DOOR_H, WALL + 2)
               .translate((0, DOOR_Y, Z_BACK + WALL / 2)).edges("|Z").fillet(4.0))
@@ -182,6 +189,8 @@ def bumper() -> cq.Workplane:
               .translate((0, H / 2 + BUMPER_T / 2, RJ45_Z)))
     b = b.cut(cq.Workplane("XY").box(USBC_W + 10, 12, USBC_H + 6)
               .translate((0, -H / 2 - BUMPER_T / 2, USBC_Z)))
+    b = b.cut(cq.Workplane("XY").box(12, SD_SLOT_W + 6, SD_SLOT_H + 5)
+              .translate((W / 2 + BUMPER_T / 2, SD_Y, SD_Z)))
     return b
 
 
@@ -201,6 +210,9 @@ def board_assembly(name: str) -> cq.Workplane:
     b = FLOORPLAN["boards"][name]
     (bw, bh), (cx, cy) = b["size"], b["centre_in_enclosure"]
     solid = cq.Workplane("XY").box(bw, bh, PCB_T).edges("|Z").fillet(2.0).translate((cx, cy, Z_PCB))
+    for x0, y0, x1, y1 in b.get("tabs", []):
+        solid = solid.union(cq.Workplane("XY").box(x1 - x0 + 1.0, y1 - y0, PCB_T)
+                            .translate((cx + (x0 + x1) / 2 - 0.5, cy + (y0 + y1) / 2, Z_PCB)))
     for _, _, x, y, _, _, _, flags in _placements(b):
         if "hole" in flags:
             solid = solid.cut(cq.Workplane("XY").workplane(offset=Z_PCB - PCB_T).center(x, y)
