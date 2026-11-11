@@ -21,7 +21,7 @@ packages = ["netscope", "netscope.api", "netscope.cable", "netscope.engine", "ne
             "netscope.net", "netscope.reports"]
 
 [tool.setuptools.dynamic]
-version = { file = "../VERSION" }
+version = { attr = "netscope.__version__" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
