@@ -57,7 +57,7 @@ Values are the single source of truth in `firmware/netscope/cable/terminator.py`
 
 Because the terminations are kilohms, a TDR sees them as an open end, so length works with the RT-1 fitted.
 
-**PoE interaction:** an RT-1 is not a valid PD signature (25 k across the powered pairs), so a compliant PSE will not power it. A passive injector would put its full voltage across the diodes and resistors; the parts are rated for 60 V continuous (1 k at 57 V dissipates 3.2 W, so the resistors must be flameproof 3 W types or the pair protected by a series PTC - open design choice, see `hardware/remote-terminator/README.md`).
+**PoE interaction:** an RT-1 is not a valid PD signature (25 k across the powered pairs), so a compliant PSE will not power it. A passive injector on a miswired or split run can put its full voltage across one diode and resistor. The diodes withstand that; the resistors do not yet (1 k at 57 V dissipates 3.2 W). Rev A of the board uses 2512 resistor footprints so power-rated parts can be fitted, but the part choice and a temperature test are open, and the earlier series-fuse idea has been withdrawn because no fuse would trip at these currents. See `hardware/remote-terminator/README.md`.
 
 ## Validation
 

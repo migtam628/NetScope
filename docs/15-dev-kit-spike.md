@@ -77,7 +77,7 @@ Fail action: evaluate another PHY with mainline cable-test support before changi
 
 ## Step 4 - Wiremap on a breadboard
 
-Build the RT-1 terminator and the mux front end; port `firmware/coproc/wiremap.c` to the Nucleo by implementing the three `ns_afe_t` callbacks.
+Build the RT-1 terminator (board files and Gerbers in `hardware/remote-terminator/`, or the same four diode + resistor elements on a breakout) and the mux front end; port `firmware/coproc/wiremap.c` to the Nucleo by implementing the three `ns_afe_t` callbacks.
 
 | Check | Pass |
 |---|---|

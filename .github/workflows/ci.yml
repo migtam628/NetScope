@@ -46,10 +46,17 @@ jobs:
         run: |
           sudo add-apt-repository -y ppa:kicad/kicad-9.0-releases
           sudo apt-get update -q
-          sudo apt-get install -y -q --no-install-recommends kicad kicad-symbols python3-yaml
+          sudo apt-get install -y -q --no-install-recommends kicad kicad-symbols kicad-footprints python3-yaml
+          mkdir -p ~/.config/kicad/9.0
+          cp /usr/share/kicad/template/sym-lib-table /usr/share/kicad/template/fp-lib-table ~/.config/kicad/9.0/
       - run: kicad-cli version
       - name: Generated schematic is in step with the netlist
         run: |
           /usr/bin/python3 tools/gen_kicad.py
           git diff --exit-code -- hardware/kicad
       - run: /usr/bin/python3 tools/check_kicad.py
+      - name: RT-1 schematic is in step with the firmware definition
+        run: |
+          /usr/bin/python3 tools/gen_rt1.py
+          git diff --exit-code -- hardware/remote-terminator/kicad
+      - run: /usr/bin/python3 tools/check_rt1.py

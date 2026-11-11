@@ -1,0 +1,7 @@
+"Refs","Value","Footprint","MPN","Manufacturer","Tolerance","Rating","Qty"
+"D1-D4","1N4148W","Diode_SMD:D_SOD-123","1N4148W (any maker, SOD-123)","","","","4"
+"J1","RJ45 jack, unshielded","Connector_RJ:RJ45_Amphenol_54602-x08_Horizontal","54602-908LF","Amphenol","","","1"
+"R1","1k","Resistor_SMD:R_2512_6332Metric","","","1%","1 W or more (see README: fault dissipation)","1"
+"R2","2k2","Resistor_SMD:R_2512_6332Metric","","","1%","1 W or more (see README: fault dissipation)","1"
+"R3","4k7","Resistor_SMD:R_2512_6332Metric","","","1%","1 W or more (see README: fault dissipation)","1"
+"R4","10k-150k by ID","Resistor_SMD:R_2512_6332Metric","","","1%","1 W or more (see README: fault dissipation)","1"

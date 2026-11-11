@@ -18,6 +18,8 @@
 - Tests for the Linux backend using canned tool output and a fake coprocessor (125 tests in total). It has still not run on a real network.
 - BOM: isolated DC/DC and PoE magnetics moved from "tbd" to "candidate".
 - KiCad 9 project for the main board, generated from the block netlist (`tools/gen_kicad.py`): seven hierarchical sheets of block symbols, domain net classes, a 2.5 mm cross-domain clearance rule, and a board file with the outline, mounting holes and placement guides. Checked with KiCad 9.0.9 by `tools/check_kicad.py` (ERC clean, exported netlist identical to the YAML netlist, isolation rules proven to fire). Block level only: function-named pins, no footprints, no layout.
+- RT-1 remote terminator rev A: real KiCad capture and a routed two-layer board (17.8 x 39.8 mm), generated from the firmware's terminator definition (`tools/gen_rt1.py`, `tools/layout_rt1.py`) and checked by `tools/check_rt1.py` (ERC, netlist against the firmware, DRC with schematic parity). Gerbers, drill, BOM and placement files in `hardware/remote-terminator/fab-rev-a/`. Not fabricated.
+- RT-1 protection note corrected: the series resettable fuse preferred earlier cannot trip at the fault currents involved (12-57 mA) and is withdrawn. Rev A uses 2512 resistor footprints instead; surviving a passive injector is still open.
 
 ## 0.1.0 - 2026-11-11
 

@@ -54,5 +54,5 @@ keypad,-,1,"Silicone keypad with light pipes",-,-,tbd,20,14,6,2.2,"n/a","Custom 
 spreader,-,1,"Aluminium heat spreader for PoE load + SoM",-,-,tbd,6,5,3,1.8,"n/a","CNC then stamped",no
 antenna,-,1,"2.4/5 GHz antenna with U.FL pigtail",Raspberry Pi,Compute Module 4/5 Antenna Kit,known,4,4,4,3.5,"none without re-testing radio compliance","Using the maker's antenna keeps the module's radio certification applicable (confirm with test lab)",no
 hardware,-,1,"Screws, inserts, gasket, display lens, lanyard post, labels",-,-,tbd,12,10,6,3.5,"n/a","Commodity",no
-terminator,-,1,"RT-1 remote terminator (one included per unit)",-,-,tbd,9,8,5,3,"n/a","See hardware/remote-terminator",no
+terminator,-,1,"RT-1 remote terminator (one included per unit)",-,-,tbd,9,8,5,3,"n/a","See hardware/remote-terminator: rev A board and its own BOM; cost here is still an estimate",no
 test,-,1,"Programming, calibration and functional test labour",-,-,tbd,30,20,10,5,"n/a","Needs the fixture from docs/09",no

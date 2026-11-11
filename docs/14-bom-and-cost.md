@@ -82,5 +82,5 @@ Prototype run of 5 boards: about $3,717 in parts and services, plus a second spi
 | - | 1 | Aluminium heat spreader for PoE load + SoM | -  | tbd | 6.00 | 3.00 | 1.80 |  | n/a | CNC then stamped |
 | - | 1 | 2.4/5 GHz antenna with U.FL pigtail | Raspberry Pi Compute Module 4/5 Antenna Kit | known | 4.00 | 4.00 | 3.50 | [DigiKey](https://www.digikey.com/en/products/result?keywords=Compute+Module+4%2F5+Antenna+Kit) [Mouser](https://www.mouser.com/c/?q=Compute+Module+4%2F5+Antenna+Kit) | none without re-testing radio compliance | Using the maker's antenna keeps the module's radio certification applicable (confirm with test lab) |
 | - | 1 | Screws, inserts, gasket, display lens, lanyard post, labels | -  | tbd | 12.00 | 6.00 | 3.50 |  | n/a | Commodity |
-| - | 1 | RT-1 remote terminator (one included per unit) | -  | tbd | 9.00 | 5.00 | 3.00 |  | n/a | See hardware/remote-terminator |
+| - | 1 | RT-1 remote terminator (one included per unit) | -  | tbd | 9.00 | 5.00 | 3.00 |  | n/a | See hardware/remote-terminator: rev A board and its own BOM; cost here is still an estimate |
 | - | 1 | Programming, calibration and functional test labour | -  | tbd | 30.00 | 10.00 | 5.00 |  | n/a | Needs the fixture from docs/09 |
