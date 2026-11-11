@@ -39,7 +39,7 @@ Why each was chosen, and what was rejected, is in `docs/02-architecture.md`.
 
 | Path | Contents |
 |---|---|
-| `docs/` | 01 requirements and feasibility ... 14 BOM and cost |
+| `docs/` | 01 requirements and feasibility ... 15 dev-kit spike |
 | `firmware/netscope/` | Engine: HAL, cable analysis, parsers, tools, Auto Diagnose, rules assistant, reports, API |
 | `firmware/ui/` | Touch UI |
 | `firmware/coproc/` | Coprocessor C core with host tests |
@@ -54,12 +54,12 @@ Why each was chosen, and what was rejected, is in `docs/02-architecture.md`.
 ## What is and is not claimed
 
 - Cable testing is continuity, wiremap and TDR **verification**. It is not TIA/ISO certification and the product must never be described that way.
-- Cost and runtime figures are calculated estimates. Distributor prices were not checked line by line; 16 of 46 BOM parts are still "tbd".
+- Cost and runtime figures are calculated estimates. Distributor prices were not checked line by line; 14 of 46 BOM parts are still "tbd".
 - `firmware/netscope/hal/linux.py` (the real-network backend) has not been run against a network or a board.
 
 ## Next step
 
-The dev-kit spike in `docs/08-development-plan.md`: about $400 of evaluation boards and one to two weeks retires most of the technical risk before any schematic is drawn.
+The dev-kit spike: `docs/15-dev-kit-spike.md` has the kit list, procedures and pass criteria. Budget $700-$900 and one to two weeks; it retires most of the technical risk before any schematic is drawn.
 
 ## License
 

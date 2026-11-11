@@ -13,9 +13,9 @@ Status as of v0.1.0. "Exit" is the evidence needed to leave a phase.
 | 7 Bring-up and calibration | docs/09 | Not started | Every test in docs/09 has a recorded result |
 | 8 Field validation and production prep | Pilot with technicians, compliance, fixture | Not started | 30 days of field use; compliance pre-scan passed; production test fixture built |
 
-## Do this before any schematic: the dev-kit spike (1-2 weeks, about $400)
+## Do this before any schematic: the dev-kit spike (1-2 weeks, $700-$900; see docs/15)
 
-Most of the remaining technical risk can be retired on a bench with bought boards:
+Most of the remaining technical risk can be retired on a bench with bought boards. The kit list, procedures and pass criteria are in `docs/15-dev-kit-spike.md`; the summary:
 
 1. **CM5 dev kit + 5 inch Touch Display 2.** Run this repo's engine with `--hal linux` and the UI in a kiosk browser. Measure boot time, RAM and idle power. Retires the UI-stack and power questions.
 2. **A LAN7801 evaluation board with a KSZ9131 PHY (confirm the current Microchip kit name and PHY fit before ordering) on the dev kit's USB 3.** Run `ethtool --cable-test` on real cables, a reel and against switches. Retires the TDR question and gives real accuracy numbers.

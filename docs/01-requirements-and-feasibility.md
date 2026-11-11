@@ -16,7 +16,7 @@ This maps each section of the product brief to a feasibility verdict and to the 
 | 10 Battery | Feasible with a three-cell pack | Two cells give about 6.7 h typical; three give about 10 h. No reliable suspend on the SoM, so standby is power-off with a fast boot | 06 |
 | 11 PCB | Not started, by decision | Block netlist and design rules exist; schematic waits for the dev-kit spike | 11, hardware/kicad |
 | 12 Enclosure | Concept only | Depth margin at the battery is too tight for a real pack | 12 |
-| 13 Sourcing and cost | Estimated | 16 of 46 parts still "tbd"; prices unverified | 14 |
+| 13 Sourcing and cost | Estimated | 14 of 46 parts still "tbd"; prices unverified | 14 |
 | 14 Firmware | Engine, UI, simulator done; coprocessor port and OS image not started | - | 13 |
 | 15 Verification | Planned | Nothing can be verified before boards exist | 08, 09 |
 

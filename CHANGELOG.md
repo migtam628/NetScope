@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Fixed `pip install -e firmware` (version source), which failed in the first CI run.
+- Added `docs/15-dev-kit-spike.md` and a results template; corrected the spike budget from about $400 to $700-$900.
+- BOM: isolated DC/DC and PoE magnetics moved from "tbd" to "candidate".
+
 ## 0.1.0 - 2026-11-11
 
 First repository baseline. Pre-hardware.
