@@ -28,6 +28,7 @@ Pick a scenario under Settings in the UI. Everything the simulator produces is l
 | Processor | Raspberry Pi Compute Module 5 (Linux, on-module Wi-Fi/Bluetooth) |
 | Safety / real-time | STM32G0B1 coprocessor: power, relays, wiremap front end, isolated PoE bus |
 | Test port | LAN7801 + KSZ9131 PHY (TDR through `ethtool --cable-test`) |
+| Fiber port | 10 Gb SFP+ (Marvell AQC100 on the single PCIe lane); links at 10 Gb, throughput about 3.5-6 Gb/s |
 | Wiremap | DC front end switched in by relays + RT-1 passive remote terminator |
 | PoE | TPS2372-4 PD interface on an isolated island, INA228, switched load |
 | UI | 5 inch 720x1280 touch panel + keypad; HTML UI in a kiosk browser over a local API |

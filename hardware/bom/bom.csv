@@ -41,7 +41,8 @@ buck_3v3,U54,1,"2 A buck, 5 V to 3.3 V",Texas Instruments,TLV62569DBVR,known,0.7
 bipolar,U55,1,"Split-rail DC/DC, 5 V to +/-15 V",Texas Instruments,TPS65131RGER,candidate,4.2,4.2,3.2,2.6,"Charge-pump doubler/inverter pair","Active part",yes
 sd_reader,U60,1,"USB 2.0 SD card reader controller (DNP option)",Microchip,USB2244,candidate,3.0,3.0,2.3,1.9,"Genesys GL823K","Option, not populated on rev A",yes
 sd_socket,J30,1,"microSD push-push socket (DNP option)",TBD,TBD,tbd,1.2,1.2,0.8,0.6,"Molex / Hirose DM3","Option",yes
-m2,J31,1,"M.2 E-key socket, 2230 (DNP option for a second radio)",TBD,TBD,tbd,1.5,1.5,1.0,0.8,"TE / Amphenol M.2 E-key 4.2 mm","Option",yes
+mac_10g,U70,1,"10G Ethernet MAC, PCIe x1 to SFP+ (XFI), FCBGA 7 x 11 mm",Marvell,AQC100-B1-C,candidate,24,24,19,15,"none identified with a single-lane PCIe host and a mainline Linux driver","Price and stock NOT checked. Confirm 1G SFP support and Gen 2 single-lane operation on the CM5 before committing.",yes
+sfp_cage,J32,1,"SFP+ cage, 1x1, press-fit, with 20-pin host connector and EMI springs",TBD,TBD,tbd,4.5,4.5,3.2,2.4,"TE / Molex / Amphenol 1x1 SFP+ cage and connector","Commodity. Replaces the M.2 option, which used the same PCIe lane.",yes
 debug,J40,1,"Tag-Connect footprint + 2x5 1.27 mm header (proto only)",various,TBD,tbd,0.8,0.8,0.3,0.1,"n/a","Proto only",yes
 passives,-,1,"Resistors, capacitors, ferrites, small inductors (~260 placements)",various,-,tbd,14,12,7,4.5,"n/a","Commodity",no
 pcb,-,1,"6-layer 1.6 mm FR-4 TG170, ENIG, controlled impedance, ~150 x 85 mm",fab house,-,tbd,45,30,12,6.5,"n/a","Standard stackup at any controlled-impedance fab",no

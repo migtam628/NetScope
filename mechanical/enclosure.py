@@ -41,7 +41,8 @@ DPAD_C, DPAD_PITCH = (-22.0, -76.0), 13.5
 RIGHT_KEYS = [(24.0, -62.0), (24.0, -77.0), (24.0, -92.0)]   # Back, Home, Fn
 
 # ---- ports ----------------------------------------------------------------------
-RJ45_W, RJ45_H, RJ45_X = 16.6, 14.0, 19.0
+RJ45_W, RJ45_H = 16.6, 14.0           # opening; jack positions come from the floorplan
+SFP_W, SFP_H = 15.1, 10.4             # opening for the SFP+ cage mouth
 USBC_W, USBC_H = 9.6, 3.9
 
 # ---- battery: 1S3P 21700 ---------------------------------------------------------
@@ -53,7 +54,7 @@ LED_Y = -48.0                       # status LEDs sit between the display and th
 VENT_XY = (37.5, -77.0)             # buzzer is on the front of the lower board
 POST_R = 3.0
 POWER_KEY = (38.0, -55.0)           # recessed opening, smaller than the other keys
-SD_Y, SD_SLOT_W, SD_SLOT_H = 15.7, 14.0, 2.6   # microSD slot in the right-hand wall
+SD_SLOT_W, SD_SLOT_H = 14.0, 2.6    # microSD slot in the top end wall
 SD_Z = Z_FRONT - WALL - 8.0 - 2.0 - 1.6 - 1.0   # card plane: 1 mm behind the board (MODULE_T = 8)
 
 # ---- depth stack, front to back (everything hangs off these) -------------------
@@ -137,14 +138,18 @@ def rear_shell() -> cq.Workplane:
         r = r.cut(cq.Workplane("XY").workplane(offset=Z_BACK - 1).center(x, y)
                   .circle(2.6).extrude(1 + 6.0))
     # RJ45 openings in the top end, USB-C in the bottom end
-    for x in (-RJ45_X, RJ45_X):
+    for x in part_x("J10") + part_x("J11"):
         r = r.cut(cq.Workplane("XY").box(RJ45_W, 12, RJ45_H)
                   .translate((x, H / 2 - 3, RJ45_Z)))
+    for x in part_x("J32"):                       # SFP+ cage mouth
+        r = r.cut(cq.Workplane("XY").box(SFP_W, 12, SFP_H)
+                  .translate((x, H / 2 - 3, Z_PCB_BOTTOM - 9.8 / 2)))
     usb = cq.Workplane("XZ").center(0, USBC_Z).rect(USBC_W, USBC_H).extrude(12) \
         .edges("|Y").fillet(1.6).translate((0, -H / 2 + 12 - 3, 0))
     r = r.cut(usb)
-    # microSD slot through the right-hand wall, in line with the socket on the board tab
-    r = r.cut(cq.Workplane("XY").box(8.0, SD_SLOT_W, SD_SLOT_H).translate((W / 2 - 2.0, SD_Y, SD_Z)))
+    # microSD slot through the top end wall, in line with the socket on the board tab
+    for x in part_x("J30"):
+        r = r.cut(cq.Workplane("XY").box(SD_SLOT_W, 8.0, SD_SLOT_H).translate((x, H / 2 - 2.0, SD_Z)))
     # battery door opening
     r = r.cut(cq.Workplane("XY").box(DOOR_W, DOOR_H, WALL + 2)
               .translate((0, DOOR_Y, Z_BACK + WALL / 2)).edges("|Z").fillet(4.0))
@@ -185,12 +190,12 @@ def bumper() -> cq.Workplane:
     b = b.translate((0, 0, BUMPER_Z0))
     # Port windows.  They must not cut the band in two: a strap is left
     # behind the ports (checked: the bumper has to stay one body).
-    b = b.cut(cq.Workplane("XY").box(2 * RJ45_X + RJ45_W + 6, 12, RJ45_H + 3)
-              .translate((0, H / 2 + BUMPER_T / 2, RJ45_Z)))
+    xs = part_x("J10") + part_x("J11") + part_x("J32") + part_x("J30")
+    x0, x1 = min(xs) - RJ45_W / 2 - 3, max(xs) + RJ45_W / 2 + 3
+    b = b.cut(cq.Workplane("XY").box(x1 - x0, 12, RJ45_H + 3)
+              .translate(((x0 + x1) / 2, H / 2 + BUMPER_T / 2, RJ45_Z)))
     b = b.cut(cq.Workplane("XY").box(USBC_W + 10, 12, USBC_H + 6)
               .translate((0, -H / 2 - BUMPER_T / 2, USBC_Z)))
-    b = b.cut(cq.Workplane("XY").box(12, SD_SLOT_W + 6, SD_SLOT_H + 5)
-              .translate((W / 2 + BUMPER_T / 2, SD_Y, SD_Z)))
     return b
 
 
@@ -198,6 +203,12 @@ def _placements(board: dict):
     cx, cy = board["centre_in_enclosure"]
     for ref, side, x, y, w, h, z, *flags in board["place"]:
         yield ref, side, cx + x, cy + y, w, h, z, set(flags)
+
+
+def part_x(ref: str) -> list[float]:
+    """Enclosure X of every placement of a part (used to line openings up with connectors)."""
+    return [x for b in FLOORPLAN["boards"].values()
+            for r, _, x, *_ in _placements(b) if r == ref]
 
 
 def mounting_holes() -> list[tuple[float, float]]:

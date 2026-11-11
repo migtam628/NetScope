@@ -59,6 +59,15 @@ Nothing in this table is hardware-verified, because no hardware has been built.
 | Throughput | iperf3 endpoint | SIM + HOST-IO | NET-12 vs known-good NIC | Needs a server; test port is USB 3 bridged (R-04) |
 | Packet capture | tcpdump | SIM + HOST-IO | NET-13 | No on-device viewer; pcap export only |
 
+## Fiber (added 2026-11-11)
+
+| Capability | Status | Validation | Limits |
+|---|---|---|---|
+| 10 Gb SFP+ link | DESIGN (in netlist, BOM, floorplan, housing) | Link against 10G-SR and 10G-LR switch ports | Throughput capped by the single PCIe lane at about 3.5-6 Gb/s; cannot prove a full 10 Gb circuit |
+| 1 Gb SFP modules | UNKNOWN | Check the controller documentation, then test | Not confirmed that the 10G controller runs 1 Gb optics |
+| Optical power, wavelength, module identity (from the module's own diagnostics) | NOT STARTED | Compare with an optical power meter | Only modules that report diagnostics; accuracy is the module's, typically +/-3 dB |
+| Fiber tools in the engine and UI | NOT STARTED | - | No software for this port exists yet |
+
 ## Wi-Fi
 
 See docs/05 for the full supported / needs-other-hardware split.

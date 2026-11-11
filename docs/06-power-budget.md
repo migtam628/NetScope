@@ -33,6 +33,7 @@ Usable capacity is taken as 90% of rated. Target: 8 h typical.
 - Continuous testing does not reach 8 h on either pack. The 8 h claim is for the typical profile only and must not be advertised more broadly until measured.
 - Standby (SoM off, coprocessor alive, ~4 mW estimate): about 506 days. Cold boot from standby is a full Linux boot (target under 20 s, unmeasured); the SoM has no suspend-to-RAM we can rely on.
 - Peak: the SoM is specified for up to 5 A at 5 V. At 3.3 V battery that is about 8.4 A from the pack, at the edge of the boost converter. The CPU cap on battery is what keeps peaks inside the budget; see risk R-05.
+- The 10 Gb fiber port (added later) is not in the table above. Controller under 1 W by its maker's brief plus an optical module of roughly 1 W: about 2 W extra while the port is powered. It is switched off when not in use. Unmeasured.
 - PoE load tests dissipate the PoE's power, not the battery's.
 
 ## What Phase 7 must measure

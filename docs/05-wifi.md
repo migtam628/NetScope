@@ -25,7 +25,7 @@ The radio is the Compute Module 5's on-board 802.11ac (2.4 / 5 GHz) + Bluetooth 
 | True channel utilisation / airtime | Needs the radio to report busy-time counters while sitting on each channel. Whether this adapter's driver exposes survey data is unverified | A radio with survey support (mt76-class card in the optional M.2 slot) |
 | Non-Wi-Fi interference (microwave ovens, Bluetooth, video senders, radar) | A Wi-Fi chip only decodes Wi-Fi frames | A spectrum analyser front end or SDR |
 | Monitor-mode capture of other clients' frames, retries, rates | Not supported in normal operation on this adapter | Monitor-mode capable card |
-| 6 GHz (Wi-Fi 6E/7) | Radio is 2.4 / 5 GHz only | 6 GHz card in the M.2 slot |
+| 6 GHz (Wi-Fi 6E/7) | Radio is 2.4 / 5 GHz only | USB radio; the M.2 slot was given up for the fiber port |
 | Site-survey heatmaps | Needs location input and a mapping workflow | Software feature, out of scope for rev A |
 
 The UI states the utilisation caveat on every scan result.

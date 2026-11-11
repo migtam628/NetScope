@@ -79,12 +79,14 @@ def check(fp, nl):
                 board_of.setdefault(p["ref"], bname)
             x0, y0, x1, y1 = rect(p)
             m = R["edge_margin"]
-            lo_x, hi_x = -bw / 2, bw / 2
-            for tx0, ty0, tx1, ty1 in b.get("tabs", []):   # a part wholly within a tab's Y span may use it
+            lo_x, hi_x, lo_y, hi_y = -bw / 2, bw / 2, -bh / 2, bh / 2
+            for tx0, ty0, tx1, ty1 in b.get("tabs", []):   # a part within a tab's span may use it
                 if y0 >= ty0 and y1 <= ty1:
                     lo_x, hi_x = min(lo_x, tx0), max(hi_x, tx1)
+                if x0 >= tx0 + m and x1 <= tx1 - m:
+                    lo_y, hi_y = min(lo_y, ty0), max(hi_y, ty1)
             if "over" not in p["flags"] and (x0 < lo_x + m or x1 > hi_x - m
-                                             or y0 < -bh / 2 + m or y1 > bh / 2 - m):
+                                             or y0 < lo_y + m or y1 > hi_y - m):
                 errs.append(f"{bname}: {p['ref']} is outside the board outline / edge margin")
             sides = "FB" if "tht" in p["flags"] else p["side"]
             for s in sides:
