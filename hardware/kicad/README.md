@@ -6,6 +6,7 @@ A schematic produced without a datasheet-by-datasheet pin check and an ERC run w
 
 What exists instead, and what the schematic must be drawn from:
 
+- `../schematic/netscope-x1-main-board.pdf`: block schematic drawn from the netlist (function-named pins; a reading aid, not a substitute for capture).
 - `../netlist/netscope-x1.yaml`: every component and net at block level, with electrical domains.
 - `../../tools/check_netlist.py`: isolation, fail-safe and BOM-agreement rules. When the KiCad netlist exists, export it and port these rules to run against it in CI.
 - `../bom/bom.csv`: parts, with honest part-number status.

@@ -2,6 +2,8 @@
 
 This is the next phase. It needs hardware on a bench; nothing here can be done in software alone. The purpose is to prove or kill the five riskiest assumptions in `docs/02` before a schematic is drawn. Record every result in `docs/spike/RESULTS.md` (template provided) and commit it.
 
+Wiring for the whole kit is drawn in `hardware/schematic/bench-kit.pdf` (source `hardware/spike/bench-kit.yaml`).
+
 ## Budget correction
 
 The first estimate for this spike was about $400. That was too low. The LAN7801 evaluation platform alone was listed at about EUR 259 at one distributor when checked on 2026-11-11. **Plan for $700-$900** and quote each line before ordering. Prices below are marked "checked" only where a current listing was seen.

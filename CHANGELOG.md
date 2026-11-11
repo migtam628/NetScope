@@ -4,6 +4,7 @@
 
 - Fixed `pip install -e firmware` (version source), which failed in the first CI run.
 - Added `docs/15-dev-kit-spike.md` and a results template; corrected the spike budget from about $400 to $700-$900.
+- Block schematics as PDF for the main board (10 sheets) and the bench kit (7 sheets), generated from the netlists by `tools/render_schematic.py`. Not KiCad, not ERC-checked.
 - Coprocessor: command dispatcher with relay/voltage interlocks, host-tested and cross-checked against the Python protocol code.
 - Tests for the Linux backend using canned tool output and a fake coprocessor (125 tests in total). It has still not run on a real network.
 - BOM: isolated DC/DC and PoE magnetics moved from "tbd" to "candidate".

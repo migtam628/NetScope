@@ -46,10 +46,12 @@ Why each was chosen, and what was rejected, is in `docs/02-architecture.md`.
 | `firmware/tests/` | Engine, parser, wiremap and API tests |
 | `hardware/netlist/` | Block-level netlist (YAML) checked by `tools/check_netlist.py` |
 | `hardware/bom/` | BOM with part-number status (known / candidate / tbd) |
+| `hardware/schematic/` | Block schematics (PDF) of the main board and the bench kit, generated from the netlists |
+| `hardware/spike/` | Bench-kit netlist |
 | `hardware/kicad/` | Empty on purpose; see its README |
 | `hardware/remote-terminator/` | RT-1 design |
 | `mechanical/` | Parametric enclosure (CadQuery) with STEP, STL, 3MF and drawings |
-| `tools/` | Netlist check, cost roll-up, power budget |
+| `tools/` | Netlist check, schematic renderer, cost roll-up, power budget |
 
 ## What is and is not claimed
 

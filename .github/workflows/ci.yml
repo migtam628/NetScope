@@ -34,3 +34,5 @@ jobs:
       - run: python tools/check_netlist.py
       - run: python tools/cost_rollup.py
       - run: python tools/power_budget.py
+      - run: python tools/render_schematic.py hardware/netlist/netscope-x1.yaml /tmp/sch/main
+      - run: python tools/render_schematic.py hardware/spike/bench-kit.yaml /tmp/sch/bench
