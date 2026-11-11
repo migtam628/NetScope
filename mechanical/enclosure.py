@@ -15,9 +15,11 @@ before printing.  See docs/12-mechanical.md.
 from pathlib import Path
 
 import cadquery as cq
+import yaml
 from cadquery import exporters
 
 OUT = Path(__file__).resolve().parent / "out"
+FLOORPLAN = yaml.safe_load((Path(__file__).resolve().parents[1] / "hardware/pcb/floorplan.yaml").read_text())
 
 # ---- envelope (mm) ---------------------------------------------------------
 W, H, D = 108.0, 212.0, 40.0        # width (X), height (Y), depth (Z)
@@ -46,7 +48,10 @@ USBC_W, USBC_H = 9.6, 3.9
 CELL_D, CELL_L = 21.6, 71.0
 DOOR_W, DOOR_H, DOOR_Y, DOOR_GAP = 74.0, 80.0, -56.0, 0.3
 
-PCB_W, PCB_H, PCB_T = 88.0, 150.0, 1.6   # narrower than the screw bosses (checked below)
+PCB_T = 1.6                          # board outlines and parts come from hardware/pcb/floorplan.yaml
+LED_Y = -48.0                       # status LEDs sit between the display and the keys
+VENT_XY = (37.5, -77.0)             # buzzer is on the front of the lower board
+POST_R = 3.0
 
 # ---- depth stack, front to back (everything hangs off these) -------------------
 Z_DISPLAY = Z_FRONT - WALL - MODULE_T / 2
@@ -93,11 +98,16 @@ def front_shell() -> cq.Workplane:
     holes = (cq.Workplane("XY").workplane(offset=Z_FRONT - WALL - 1).pushPoints(keys)
              .circle(KEY_D / 2).extrude(WALL + 2))
     f = f.cut(holes)
-    # status LED light-pipe holes above the display
+    # status LED light-pipe holes between the display and the keys
     leds = (cq.Workplane("XY").workplane(offset=Z_FRONT - WALL - 1)
-            .pushPoints([(x, H / 2 - 7.0) for x in (-12, -4, 4, 12)]).circle(1.25)
+            .pushPoints([(x, LED_Y) for x in (-12, -4, 4, 12)]).circle(1.25)
             .extrude(WALL + 2))
     f = f.cut(leds)
+    # buzzer vents over the buzzer on the lower board
+    vents = (cq.Workplane("XY").workplane(offset=Z_FRONT - WALL - 1)
+             .pushPoints([(VENT_XY[0] + dx, VENT_XY[1] + dy) for dx in (-3, 0, 3) for dy in (-3, 0, 3)])
+             .circle(0.7).extrude(WALL + 2))
+    f = f.cut(vents)
     # screw bosses for M2.5 heat-set inserts, from the inside of the front wall to the split
     for x, y in BOSS_XY:
         boss = (cq.Workplane("XY").workplane(offset=Z_SPLIT).center(x, y).circle(BOSS_R)
@@ -143,11 +153,14 @@ def rear_shell() -> cq.Workplane:
     r = r.union(lug)
     r = r.cut(cq.Workplane("XY").workplane(offset=Z_BACK - 1)
               .center(-W / 2 + 9.5, H / 2 - 9.5).circle(2.4).extrude(Z_PCB_BOTTOM - Z_BACK))
-    # buzzer vents
-    vents = (cq.Workplane("XY").workplane(offset=Z_BACK - 1)
-             .pushPoints([(30 + dx, 70 + dy) for dx in (-3, 0, 3) for dy in (-3, 0, 3)])
-             .circle(0.7).extrude(WALL + 2))
-    return r.cut(vents)
+    # board standoffs at every mounting hole in the floorplan (M2.5 self-tapping pilot)
+    for x, y in mounting_holes():
+        post = (cq.Workplane("XY").workplane(offset=Z_BACK + WALL - 0.2).center(x, y)
+                .circle(POST_R).extrude(Z_PCB_BOTTOM - Z_BACK - WALL + 0.2))
+        r = r.union(post)
+        r = r.cut(cq.Workplane("XY").workplane(offset=Z_PCB_BOTTOM - 6.0).center(x, y)
+                  .circle(1.05).extrude(6.1))
+    return r
 
 
 def battery_door() -> cq.Workplane:
@@ -172,25 +185,47 @@ def bumper() -> cq.Workplane:
     return b
 
 
+def _placements(board: dict):
+    cx, cy = board["centre_in_enclosure"]
+    for ref, side, x, y, w, h, z, *flags in board["place"]:
+        yield ref, side, cx + x, cy + y, w, h, z, set(flags)
+
+
+def mounting_holes() -> list[tuple[float, float]]:
+    return [(x, y) for b in FLOORPLAN["boards"].values()
+            for _, _, x, y, _, _, _, flags in _placements(b) if "hole" in flags]
+
+
+def board_assembly(name: str) -> cq.Workplane:
+    """Bare board plus one box per placed part (approximate envelopes)."""
+    b = FLOORPLAN["boards"][name]
+    (bw, bh), (cx, cy) = b["size"], b["centre_in_enclosure"]
+    solid = cq.Workplane("XY").box(bw, bh, PCB_T).edges("|Z").fillet(2.0).translate((cx, cy, Z_PCB))
+    for _, _, x, y, _, _, _, flags in _placements(b):
+        if "hole" in flags:
+            solid = solid.cut(cq.Workplane("XY").workplane(offset=Z_PCB - PCB_T).center(x, y)
+                              .circle(1.35).extrude(2 * PCB_T))
+    for ref, side, x, y, w, h, z, flags in _placements(b):
+        if "hole" in flags or z <= 0:
+            continue
+        zc = Z_PCB + PCB_T / 2 + z / 2 if side == "F" else Z_PCB_BOTTOM - z / 2
+        solid = solid.union(cq.Workplane("XY").box(w, h, z).translate((x, y, zc)))
+    return solid
+
+
 def references() -> dict[str, cq.Workplane]:
-    """Keep-out volumes of bought-in modules, for interference checks only."""
-    z_disp, z_pcb = Z_DISPLAY, Z_PCB
+    """Keep-out volumes of bought-in modules and the two board assemblies."""
     z_cells = Z_BACK + WALL + 0.6 + CELL_D / 2
     cells = cq.Workplane("XY")
     for i in (-1, 0, 1):
         cells = cells.union(cq.Workplane("XZ").circle(CELL_D / 2).extrude(CELL_L)
                             .translate((i * (CELL_D + 0.6), DOOR_Y + CELL_L / 2, z_cells)))
-    rj = cq.Workplane("XY")
-    for x in (-RJ45_X, RJ45_X):
-        rj = rj.union(cq.Workplane("XY").box(16.0, 21.5, RJ45_BODY_H)
-                      .translate((x, H / 2 - WALL - 21.5 / 2, RJ45_Z)))
     return {
         "ref_display": cq.Workplane("XY").box(MODULE_W, MODULE_H, MODULE_T)
-        .translate((0, DISPLAY_Y, z_disp)),
-        "ref_pcb": cq.Workplane("XY").box(PCB_W, PCB_H, PCB_T).translate((0, 22.0, z_pcb)),
-        "ref_som": cq.Workplane("XY").box(55.0, 40.0, 4.7).translate((0, 40.0, z_pcb - 4.0)),
+        .translate((0, DISPLAY_Y, Z_DISPLAY)),
+        "pcb_main": board_assembly("main"),
+        "pcb_lower": board_assembly("lower"),
         "ref_cells": cells,
-        "ref_rj45": rj,
     }
 
 
@@ -227,7 +262,11 @@ def main() -> int:
         asm.add(part, name=name, color=cq.Color(*COLORS[name]))
     refs = references()
     for name, ref in refs.items():
-        asm.add(ref, name=name, color=cq.Color(0.3, 0.6, 0.9, 0.5))
+        colour = cq.Color(0.05, 0.35, 0.15) if name.startswith("pcb") else cq.Color(0.3, 0.6, 0.9, 0.5)
+        asm.add(ref, name=name, color=colour)
+        exporters.export(ref, str(OUT / f"{name}.stl"))
+        if name.startswith("pcb"):
+            exporters.export(ref, str(OUT / f"{name}.step"))
     asm.save(str(OUT / "netscope_x1_assembly.step"))
 
     report += ["", "## Interference (shell vs. module keep-outs)", "",
@@ -241,6 +280,17 @@ def main() -> int:
             flag = "" if v < 1.0 else " **CLASH**"
             ok &= v < 1.0
             report.append(f"| {pname} | {rname} | {v:.1f}{flag} |")
+    report += ["", "## Interference between internal modules", "",
+               "| Module | Module | Overlap (mm3) |", "|---|---|---:|"]
+    names = list(refs)
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            try:
+                v = refs[a].intersect(refs[b]).val().Volume()
+            except Exception:
+                v = 0.0
+            ok &= v < 1.0
+            report.append(f"| {a} | {b} | {v:.1f}{'' if v < 1.0 else ' **CLASH**'} |")
     stack = WALL + MODULE_T + 2.0 + PCB_T + 0.6 + CELL_D + 0.6 + WALL
     report += ["", "## Depth stack at the battery", "",
                f"front wall {WALL} + display {MODULE_T} + gap 2.0 + PCB {PCB_T} + clearance 0.6 "

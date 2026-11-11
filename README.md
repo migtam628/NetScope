@@ -48,9 +48,10 @@ Why each was chosen, and what was rejected, is in `docs/02-architecture.md`.
 | `hardware/bom/` | BOM with part-number status (known / candidate / tbd) |
 | `hardware/schematic/` | Block schematics (PDF) of the main board and the bench kit, generated from the netlists |
 | `hardware/spike/` | Bench-kit netlist |
+| `hardware/pcb/` | Two-board floorplan (placement, not routed) with checks |
 | `hardware/kicad/` | Empty on purpose; see its README |
 | `hardware/remote-terminator/` | RT-1 design |
-| `mechanical/` | Parametric enclosure (CadQuery) with STEP, STL, 3MF and drawings |
+| `mechanical/` | Parametric enclosure and board assemblies (CadQuery): STEP, STL, 3MF, drawings, shaded review images |
 | `tools/` | Netlist check, schematic renderer, cost roll-up, power budget |
 
 ## What is and is not claimed

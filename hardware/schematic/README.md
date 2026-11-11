@@ -36,21 +36,4 @@ The next step toward a real board is unchanged: capture these sheets in KiCad wi
 
 ## Main board: size
 
-The board is drawn for an 88 x 150 mm outline (`mechanical/enclosure.py`), six layers, parts on both sides, sitting behind the 5 inch display. That is already close to the smallest board the display and connectors allow. What actually sets the size of the product:
-
-| Driver | Why it cannot shrink much |
-|---|---|
-| 5 inch display | The board hides behind it; a smaller board does not make a smaller device |
-| Compute Module 5 | 55 x 40 mm plus its two connectors and keep-out |
-| Two RJ45 jacks, relays, PoE transformer | Tall through-hole and 1500 V isolation spacing around the cable-side parts |
-| PoE load resistors and heat spreader | Six TO-220 parts that must shed tens of watts in pulses |
-| Three-cell battery | Under the board, not on it; it sets the thickness |
-
-Ways to make the board itself smaller, in order of how little they cost:
-
-1. Leave out the two optional blocks (microSD reader, M.2 socket). Already marked do-not-populate; removing the footprints frees about a tenth of the area.
-2. Drop PoE load testing above 25 W (four load resistors instead of six). Loses the 802.3bt load test, keeps bt identification.
-3. Drop the second Ethernet port. Loses inline and two-ended tests.
-4. Move to a smaller processor module. Changes the whole software and driver plan; not recommended.
-
-None of these has been decided. Say which trade-offs are acceptable and the netlist will be cut down to match.
+Decided: keep every feature, two boards (88 x 88 mm main, 88 x 56 mm keypad/USB-C). See `hardware/pcb/README.md`.

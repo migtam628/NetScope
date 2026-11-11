@@ -1,0 +1,122 @@
+# NetScope X1 board floorplan, rev A draft.
+#
+# Placement of every part in hardware/netlist/netscope-x1.yaml on two boards.
+# Checked by tools/render_floorplan.py (outline, overlaps, height limits,
+# isolation spacing, every netlist part placed) and turned into 3D by
+# mechanical/enclosure.py.
+#
+# STATUS: a floorplan, not a layout.  Nothing is routed.  Part envelopes are
+# approximate (package class, not the selected part's land pattern) and 14
+# parts have no part number yet.  Decoupling and other small passives are not
+# placed; the free area has to absorb them.
+#
+# Coordinates: mm, origin at the board centre, X right and Y up when looking
+# at the FRONT of the device, for both sides (the back is seen through the
+# board).  place: [ref, side F|B, x, y, w, h, height, flags...]
+#   tht   = through-hole, occupies both sides
+#   over  = may overhang the board edge (connectors)
+#   extra = not a netlist part (mounting hole, inductor from the BOM, pin field)
+
+rules:
+  edge_margin: 0.5        # part edge to board edge
+  clearance: 0.3          # between parts on one side
+  isolation: 2.5          # between parts of different domains (barrier parts exempt)
+  hole_keepout: 2.9       # radius kept clear around an M2.5 mounting hole
+
+boards:
+  main:
+    title: "Main board: 88 x 88 mm, 6 layers"
+    size: [88, 88]
+    centre_in_enclosure: [0, 53]
+    limits:               # max part height by side and Y band (board coordinates)
+      F: [[-44, 44, 1.5]]                       # 2.0 mm gap to the display module
+      B: [[-44, 44, 23.0]]                      # open down to the rear wall
+    place:
+      # ---- back: tall parts -------------------------------------------------
+      - [J10,  B, -19.0, 39.75, 16.4, 21.5, 13.5, tht, over]
+      - [J11,  B,  19.0, 39.75, 16.4, 21.5, 13.5, tht, over]
+      - [T1,   B,   0.0, 36.5,  18.3, 12.2,  6.4]
+      - [K1,   B, -37.6, 21.9,  10.6,  7.4,  5.4]
+      - [K2,   B, -26.0, 21.9,  10.6,  7.4,  5.4]
+      - [K3,   B, -37.6, 13.5,  10.6,  7.4,  5.4]
+      - [K4,   B, -26.0, 13.5,  10.6,  7.4,  5.4]
+      - [M1,   B, -15.5, -13.0, 55.0, 40.0,  6.0]
+      - [J31,  B,  31.0, -12.5, 22.0, 35.0,  4.2]
+      - [PS1,  B,   5.0, 15.0,  10.5, 13.7,  3.2]
+      - [R20,  B,  27.25, 15.7, 31.5,  5.6, 19.0]
+      - [R20,  B,  27.25, 11.1, 31.5,  3.0,  0.0, tht, extra]   # resistor pin row 1
+      - [R20,  B,  27.25, 20.3, 31.5,  3.0,  0.0, tht, extra]   # resistor pin row 2
+      - [U20,  B,   4.0, 25.2,   6.2,  5.0,  1.75]
+      - [Q20,  B,  26.0, 25.0,  20.4,  2.6,  1.1]
+      - [U55,  B, -11.0, 14.5,  12.0, 10.0,  3.0]
+      - [U54,  B, -11.0, 23.0,   6.0,  6.0,  2.0]
+      # power: battery connector, gauge, charger, 5 V boost, always-on buck, microSD
+      - [BT1,  B, -31.5, -39.5, 10.0,  7.0,  6.0]            # battery connector (pack is off-board)
+      - [U51,  B, -24.0, -39.5,  3.0,  3.0,  0.8]
+      - [U50,  B, -15.5, -39.5, 10.0,  8.0,  2.0]            # charger + its inductor
+      - [L1,   B,  -5.0, -39.2,  8.0,  8.0,  4.0, extra]     # boost inductor (BOM line boost_l)
+      - [U52,  B,   2.5, -39.0,  4.5,  3.5,  0.9]
+      - [U53,  B,   9.0, -39.0,  5.0,  4.0,  1.2]
+      - [J30,  B,  29.0, -37.3, 15.0, 12.0,  1.9]
+      # ---- front: low-profile parts under the display ------------------------
+      - [PROT1, F, -31.8, 17.5, 22.0,  9.0,  1.2]
+      - [U30,  F, -15.0, 22.0,   5.0,  6.4,  1.2]
+      - [U31,  F,  -8.5, 22.0,   5.0,  6.4,  1.2]
+      - [U32,  F, -15.0, 13.0,   3.0,  3.0,  1.1]
+      - [U33,  F,  -8.5, 13.0,   4.0,  4.0,  0.9]
+      - [U10,  F,   0.0, 20.0,   7.0,  7.0,  0.9]
+      - [D10,  F,   0.0, 26.5,   4.0,  2.0,  0.6]
+      - [Y1,   F, -13.0, -9.0,   3.2,  2.5,  0.8, extra]
+      - [Y2,   F,   0.0, 12.5,   3.2,  2.5,  0.8, extra]
+      - [U11,  F, -22.0, -4.0,   9.0,  9.0,  0.9]
+      - [U40,  F, -22.0, -24.0,  7.0,  7.0,  0.6]
+      - [J40,  F, -38.0, -30.0,  8.0,  5.0,  0.0]
+      - [U60,  F,  30.0, -30.0,  5.0,  5.0,  0.9]
+      - [U21,  F,  13.0, 15.5,   5.0,  5.0,  0.9]
+      - [U22,  F,  19.5, 15.5,   4.9,  3.0,  1.1]
+      - [U23,  F,  25.9, 15.5,   4.9,  3.0,  1.1]
+      - [U24,  F,  33.0, 15.5,   6.4,  5.0,  1.2]
+      - [U25,  F,  40.0, 15.5,   3.0,  3.0,  1.2]
+      - [D20,  F,  15.5, 25.0,  11.0,  4.6,  1.1]
+      - [D21,  F,  27.5, 25.0,  11.0,  4.6,  1.1]
+      - [D22,  F,  37.5, 25.0,   4.5,  2.7,  1.1]
+      - [J50,  F, -28.0, -41.0, 18.0,  4.0,  1.0, extra]   # 30-way FFC to the lower board
+      - [J1,   F,   0.0, -41.0, 15.0,  4.0,  1.0]          # display FFC
+      - [J51,  F,  26.0, -41.0, 13.0,  4.0,  1.0, extra]   # 20-way power FFC to the lower board
+      - [H1,   F, -39.5, 34.0, 0, 0, 0, hole]
+      - [H2,   F,  39.5, 34.0, 0, 0, 0, hole]
+      - [H3,   F, -40.0, -40.5, 0, 0, 0, hole]
+      - [H4,   F,  40.0, -40.5, 0, 0, 0, hole]
+
+  lower:
+    title: "Keypad and USB-C board: 88 x 56 mm, 2 layers"
+    size: [88, 56]
+    centre_in_enclosure: [0, -73]
+    limits:
+      F: [[-28, 28, 9.8]]                       # keypad cavity
+      B: [[-28, -19.5, 23.0], [-19.5, 28, 1.0]] # battery cells are 1.2 mm behind most of this board
+    place:
+      # ---- front: keys, indicators, links -------------------------------------
+      - [SW1,  F, -22.0,  -3.0,  6.2, 6.2, 9.5]
+      - [SW1,  F,  -8.5,  -3.0,  6.2, 6.2, 9.5]
+      - [SW1,  F, -35.5,  -3.0,  6.2, 6.2, 9.5]
+      - [SW1,  F, -22.0,  10.5,  6.2, 6.2, 9.5]
+      - [SW1,  F, -22.0, -16.5,  6.2, 6.2, 9.5]
+      - [SW1,  F,  24.0,  11.0,  6.2, 6.2, 9.5]
+      - [SW1,  F,  24.0,  -4.0,  6.2, 6.2, 9.5]
+      - [SW1,  F,  24.0, -19.0,  6.2, 6.2, 9.5]
+      - [SW1,  F,  41.0,  18.0,  3.5, 6.0, 2.0]             # power key, side-actuated
+      - [LED1, F, -12.0,  25.0,  1.6, 0.8, 0.6]
+      - [LED1, F,  -4.0,  25.0,  1.6, 0.8, 0.6]
+      - [LED1, F,   4.0,  25.0,  1.6, 0.8, 0.6]
+      - [LED1, F,  12.0,  25.0,  1.6, 0.8, 0.6]
+      - [BZ1,  F,  37.5,  -4.0,  9.0, 9.0, 3.0]
+      - [J50,  F, -28.0,  24.5, 18.0, 4.0, 1.0, extra]
+      - [J51,  F,  28.0,  24.5, 13.0, 4.0, 1.0, extra]
+      # ---- back: USB-C only (the cells sit behind the rest) ---------------------
+      - [J20,  B,   0.0, -24.3,  9.0, 7.4, 3.3, over]
+      - [D30,  B,   0.0, -17.5,  3.0, 2.0, 0.6]
+      - [H5,   F, -41.0,  15.0, 0, 0, 0, hole]
+      - [H6,   F, -41.0, -24.0, 0, 0, 0, hole]
+      - [H7,   F,  41.0,   8.0, 0, 0, 0, hole]
+      - [H8,   F,  41.0, -24.0, 0, 0, 0, hole]

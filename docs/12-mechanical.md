@@ -4,6 +4,16 @@ Source: `mechanical/enclosure.py` (CadQuery, parametric). Outputs in `mechanical
 
 Regenerate: `pip install cadquery && python mechanical/enclosure.py`. The script exits non-zero if any part is not a single valid solid, if a shell clashes with a module keep-out, or if the depth stack does not fit. Those checks caught two real errors while this was written (a bumper cut in two by its port windows; a PCB wider than the screw bosses).
 
+## Boards inside the housing (added 2026-11-11)
+
+The housing model now reads `hardware/pcb/floorplan.yaml` and builds both boards with a box for every placed part. Changes made to the shells to match:
+
+- board standoffs at all eight mounting holes (rear shell);
+- status LED openings moved from above the display (where the display module blocked them) to the strip between the display and the keys;
+- buzzer vents moved from the rear wall to the front, over the buzzer.
+
+`check_report.md` now also checks the boards against the shells, the display and the cells. Board STEP files: `out/pcb_main.step`, `out/pcb_lower.step`. Shaded review images: `mechanical/renders/` (`python mechanical/render.py`). They show the concept as modelled, with box-shaped parts; they are not product renders.
+
 ## Rev A concept
 
 | | |
@@ -27,7 +37,7 @@ Regenerate: `pip install cadquery && python mechanical/enclosure.py`. The script
 - Keypad (silicone web with actuators and light pipes) is not modelled.
 - Depth margin at the battery is 0.6 mm. Too tight for a real pack with wrap and tolerance: expect the depth to grow 1-2 mm.
 - No ingress rating is designed. IP54 would need gasketed seams and port covers.
-- **No realistic renders.** Only line drawings are produced here. Import `netscope_x1_assembly.step` into Fusion 360, KeyShot or Blender for renders.
+- **No realistic renders.** Shaded review images only (`mechanical/renders/`). Import `netscope_x1_assembly.step` into Fusion 360, KeyShot or Blender for renders.
 - No editable native CAD besides the CadQuery script; STEP imports into any MCAD tool.
 
 ## Printing the fit-check
