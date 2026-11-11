@@ -14,7 +14,7 @@ This maps each section of the product brief to a feasibility verdict and to the 
 | 8 AI assistant | Local rules done; cloud optional | Reports contain site data: redaction by default, ask before sending | 13 |
 | 9 Reports | Done in simulation | - | 13 |
 | 10 Battery | Feasible with a three-cell pack | Two cells give about 6.7 h typical; three give about 10 h. No reliable suspend on the SoM, so standby is power-off with a fast boot | 06 |
-| 11 PCB | Not started, by decision | Block netlist and design rules exist; schematic waits for the dev-kit spike | 11, hardware/kicad |
+| 11 PCB | Block level only | Block netlist and design rules exist, and a KiCad 9 project generated from the netlist (block symbols, ERC clean, board outline). Pin-accurate schematic capture and layout wait for the dev-kit spike | 11, hardware/kicad |
 | 12 Enclosure | Concept only | Depth margin at the battery is too tight for a real pack | 12 |
 | 13 Sourcing and cost | Estimated | 14 of 46 parts still "tbd"; prices unverified | 14 |
 | 14 Firmware | Engine, UI, simulator done; coprocessor port and OS image not started | - | 13 |

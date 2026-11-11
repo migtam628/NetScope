@@ -6,7 +6,7 @@ Status as of v0.1.0. "Exit" is the evidence needed to leave a phase.
 |---|---|---|---|
 | 1 Feasibility and requirements | Capability matrix, limits, safety concept | **Done (this repo)** | Capability matrix reviewed and accepted by the product owner |
 | 2 Processor and measurement hardware selection | SoM, PHY, PoE PD, wiremap method, battery | **Mostly done.** Open: bt magnetics, MagJack, isolated DC/DC, split-pair circuit | Every BOM line "known" or "candidate" with a datasheet check; dev-kit spike passed (below) |
-| 3 Electrical architecture and schematics | KiCad schematic from the block netlist | Not started | ERC clean; `tools/check_netlist.py` rules re-expressed against the KiCad netlist; design review |
+| 3 Electrical architecture and schematics | KiCad schematic from the block netlist | Block-level KiCad project generated and checked (`tools/check_kicad.py`); pin-accurate capture not started | ERC clean; `tools/check_netlist.py` rules re-expressed against the KiCad netlist; design review |
 | 4 PCB layout and mechanical | 6-layer layout, enclosure detail | Enclosure concept only | DRC clean; impedance report from fab; printed enclosure fit-check with real display and jacks |
 | 5 Firmware, UI, diagnostics | Engine, UI, coprocessor port, OS image | Engine + UI + simulator done; coprocessor port and OS image not started | All SIM rows have a HOST-IO path exercised on the dev kit |
 | 6 Prototype fabrication and assembly | 5 boards | Not started | Boards assembled, visual + X-ray pass |

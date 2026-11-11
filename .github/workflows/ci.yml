@@ -37,3 +37,19 @@ jobs:
       - run: python tools/render_floorplan.py
       - run: python tools/render_schematic.py hardware/netlist/netscope-x1.yaml /tmp/sch/main
       - run: python tools/render_schematic.py hardware/spike/bench-kit.yaml /tmp/sch/bench
+
+  kicad:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install KiCad 9
+        run: |
+          sudo add-apt-repository -y ppa:kicad/kicad-9.0-releases
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends kicad kicad-symbols python3-yaml
+      - run: kicad-cli version
+      - name: Generated schematic is in step with the netlist
+        run: |
+          /usr/bin/python3 tools/gen_kicad.py
+          git diff --exit-code -- hardware/kicad
+      - run: /usr/bin/python3 tools/check_kicad.py

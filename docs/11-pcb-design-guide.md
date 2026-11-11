@@ -2,7 +2,7 @@
 
 > Updated 2026-11-11: the design is now two boards (88 x 88 mm six-layer main board, 88 x 56 mm two-layer keypad/USB-C board) joined by two flat-flex cables, and has a 10 Gb SFP+ port. Placement is in `hardware/pcb/`. The rules below apply to the main board. Additions: route the 10 Gb pair from the controller to the SFP+ cage as a short 100-ohm differential pair on one layer with no stubs, following the cage maker's footprint and the controller's layout guide; keep the 5 V flat-flex power conductors paralleled evenly and check voltage drop at 5 A.
 
-No KiCad files exist yet. This is the rule set the schematic and layout must follow. Nothing here has been reviewed by a fabricator.
+A block-level KiCad project exists in `hardware/kicad/` (block symbols, board outline, domain net classes and a 2.5 mm cross-domain rule); there is no pin-accurate schematic and no layout. This is the rule set the schematic and layout must follow. Nothing here has been reviewed by a fabricator.
 
 ## Board
 
@@ -69,7 +69,7 @@ Targets: 100 ohm differential for Ethernet MDI; 90 ohm differential for USB 3 an
 
 ## Deliverables checklist for Phase 4 (none exist yet)
 
-- [ ] KiCad project: schematic, PCB, project-local symbol/footprint libraries
+- [ ] KiCad project: schematic, PCB, project-local symbol/footprint libraries (started: block-level project only, see `hardware/kicad/README.md`)
 - [ ] ERC and DRC reports with zero unexplained waivers
 - [ ] Gerbers (X2), drill, IPC-356 netlist
 - [ ] Pick-and-place, assembly drawings, BOM export that matches `hardware/bom/bom.csv`

@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "netscope-x1")(type "KiCad")(uri "${KIPRJMOD}/netscope-x1.kicad_sym")(options "")(descr "NetScope X1 block symbols (generated)"))
+)

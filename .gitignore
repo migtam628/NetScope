@@ -7,3 +7,10 @@ build/
 dist/
 firmware/coproc/test_host
 firmware/coproc/test_dispatch
+
+# KiCad local state
+*.kicad_prl
+*-backups/
+fp-info-cache
+*.lck
+~*.kicad_*

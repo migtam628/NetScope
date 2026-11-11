@@ -17,6 +17,7 @@
 - Coprocessor: command dispatcher with relay/voltage interlocks, host-tested and cross-checked against the Python protocol code.
 - Tests for the Linux backend using canned tool output and a fake coprocessor (125 tests in total). It has still not run on a real network.
 - BOM: isolated DC/DC and PoE magnetics moved from "tbd" to "candidate".
+- KiCad 9 project for the main board, generated from the block netlist (`tools/gen_kicad.py`): seven hierarchical sheets of block symbols, domain net classes, a 2.5 mm cross-domain clearance rule, and a board file with the outline, mounting holes and placement guides. Checked with KiCad 9.0.9 by `tools/check_kicad.py` (ERC clean, exported netlist identical to the YAML netlist, isolation rules proven to fire). Block level only: function-named pins, no footprints, no layout.
 
 ## 0.1.0 - 2026-11-11
 

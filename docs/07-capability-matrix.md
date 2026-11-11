@@ -110,7 +110,7 @@ See docs/05 for the full supported / needs-other-hardware split.
 | Thermal monitoring | DESIGN | - |
 | Replaceable battery | DESIGN (door in CAD) | Pack is custom |
 | 8 h runtime | ESTIMATE (docs/06): about 10 h typical on 1S3P | Unmeasured |
-| Schematic (KiCad) | NOT STARTED | Block netlist + rules exist |
+| Schematic (KiCad) | BLOCK LEVEL ONLY | KiCad 9 project generated from the block netlist: function-named pins, no footprints, ERC clean, netlist matches. Pin-accurate capture NOT STARTED |
 | PCB layout, Gerbers, drill, pick-and-place, ERC/DRC reports | NOT STARTED | Depends on schematic |
 | Stackup, layout rules, EMC plan | Written (docs/11) | Not reviewed by a fab |
 | Enclosure CAD: STEP / STL / 3MF, drawings | Concept geometry, passes solid and interference checks | No draft, seals, snaps; display dimensions TBC |
