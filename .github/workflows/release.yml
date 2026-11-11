@@ -1,0 +1,26 @@
+name: Release
+on:
+  push:
+    tags: ["v*.*.*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Tag must match VERSION
+        run: test "v$(cat VERSION)" = "${GITHUB_REF_NAME}"
+      - run: pip install -e "firmware[dev]" build
+      - run: pytest
+        working-directory: firmware
+      - run: make -C firmware/coproc test
+      - run: python -m build firmware --outdir dist
+      - run: git archive --format=tar.gz --prefix=netscope-x1-${GITHUB_REF_NAME}/ -o dist/netscope-x1-${GITHUB_REF_NAME}-source.tar.gz HEAD
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

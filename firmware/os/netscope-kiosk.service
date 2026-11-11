@@ -1,0 +1,15 @@
+# Example unit. Not yet run on a device.
+[Unit]
+Description=NetScope X1 touch UI (WPE WebKit kiosk)
+After=netscope.service
+Requires=netscope.service
+
+[Service]
+User=netscope
+Environment=COG_PLATFORM_NAME=drm
+ExecStart=/usr/bin/cog --platform=drm http://127.0.0.1:8080/
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=graphical.target

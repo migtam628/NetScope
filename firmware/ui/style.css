@@ -1,0 +1,132 @@
+/* NetScope X1 touchscreen UI.  Target: 720 x 1280 portrait, 5 inch (about
+   11.6 px/mm).  Touch targets are at least 132 px (11 mm) tall for gloves;
+   everything is also reachable with the D-pad (yellow focus ring). */
+:root {
+  --ink: #0d1b26;        /* panel background */
+  --deck: #162a39;       /* raised surfaces */
+  --rule: #2c4558;
+  --text: #edf4f8;
+  --dim: #94aaba;
+  --focus: #ffd23f;      /* hi-vis yellow: focus + primary action */
+  --pass: #3ddc84;
+  --fail: #ff5a52;
+  --warn: #ffb020;
+  --idle: #7f93a1;
+  /* T568B conductor colours: the product's own vocabulary */
+  --w-orange: #ff8a1f; --w-green: #2fbf5b; --w-blue: #3d8bff; --w-brown: #a5673f;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; background: #05090d; overflow: hidden; }
+body { font: 30px/1.3 "Barlow", "Inter", "Segoe UI", system-ui, sans-serif; color: var(--text);
+  font-variant-numeric: tabular-nums; -webkit-user-select: none; user-select: none; }
+#frame { position: absolute; left: 50%; top: 50%; width: 720px; height: 1280px;
+  background: var(--ink); display: grid; grid-template-rows: 64px 1fr 120px;
+  transform-origin: center; overflow: hidden; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+#bar { display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+  font-size: 24px; color: var(--dim); border-bottom: 2px solid var(--rule); }
+#sim { background: var(--fail); color: #fff; font-weight: 700; padding: 4px 16px;
+  border-radius: 4px; }
+
+#view { overflow-y: auto; padding: 24px; outline: none; scrollbar-width: none; }
+#view::-webkit-scrollbar { display: none; }
+h1 { font-size: 44px; font-weight: 700; margin: 0 0 20px; letter-spacing: -0.5px; }
+h2 { font-size: 28px; font-weight: 600; margin: 28px 0 10px; color: var(--dim); }
+p { margin: 0 0 14px; }
+.dim { color: var(--dim); }
+.small { font-size: 24px; }
+
+/* rows: the basic touch target */
+.row { display: flex; align-items: center; gap: 20px; width: 100%; min-height: 132px;
+  padding: 16px 24px; margin: 0 0 12px; text-align: left; background: var(--deck);
+  border: 3px solid transparent; border-radius: 10px; }
+.row .t { flex: 1; font-size: 34px; font-weight: 600; }
+.row .s { display: block; font-size: 24px; font-weight: 400; color: var(--dim); }
+.row.compact { min-height: 96px; }
+.row.primary { background: var(--focus); color: #14110a; min-height: 156px; }
+.row.primary .s { color: #4d4212; }
+.row:active { filter: brightness(1.25); }
+:focus-visible { outline: none; }
+.row:focus-visible, .btn:focus-visible, input:focus-visible {
+  border-color: var(--focus); box-shadow: 0 0 0 3px var(--focus); }
+.row.primary:focus-visible { border-color: #fff; box-shadow: 0 0 0 4px #fff; }
+.glyph { width: 64px; height: 64px; flex: none; }
+.glyph * { fill: none; stroke: currentColor; stroke-width: 4; stroke-linecap: round;
+  stroke-linejoin: round; }
+
+.btn { min-height: 110px; padding: 0 32px; background: var(--deck); border: 3px solid var(--rule);
+  border-radius: 10px; font-weight: 600; }
+.btn.go { background: var(--focus); color: #14110a; border-color: var(--focus); }
+.btn.danger { border-color: var(--fail); color: var(--fail); }
+.btns { display: flex; gap: 12px; margin: 16px 0; }
+.btns > * { flex: 1; }
+
+/* status */
+.chip { display: inline-block; min-width: 150px; padding: 6px 14px; border-radius: 6px;
+  font-size: 24px; font-weight: 800; text-align: center; color: #06110a; flex: none; }
+.PASS { background: var(--pass); }
+.FAIL { background: var(--fail); color: #fff; }
+.WARNING { background: var(--warn); }
+.NOT_TESTED { background: transparent; color: var(--idle); box-shadow: inset 0 0 0 2px var(--idle); }
+.RUNNING { background: transparent; color: var(--focus); box-shadow: inset 0 0 0 2px var(--focus); }
+
+.card { background: var(--deck); border-radius: 10px; padding: 22px 24px; margin: 0 0 14px; }
+.card.edge-PASS { border-left: 10px solid var(--pass); }
+.card.edge-FAIL { border-left: 10px solid var(--fail); }
+.card.edge-WARNING { border-left: 10px solid var(--warn); }
+.card.edge-NOT_TESTED { border-left: 10px solid var(--idle); }
+.card h3 { margin: 0 0 8px; font-size: 32px; display: flex; gap: 16px; align-items: center;
+  justify-content: space-between; }
+.card ul { margin: 8px 0 0; padding-left: 28px; font-size: 26px; }
+.card li { margin-bottom: 8px; }
+.card .fix li { color: var(--focus); }
+
+.step { display: flex; align-items: center; gap: 16px; padding: 14px 0;
+  border-bottom: 2px solid var(--rule); font-size: 28px; }
+.step .n { flex: 1; }
+.step .d { display: block; font-size: 22px; color: var(--dim); }
+
+table { width: 100%; border-collapse: collapse; font-size: 24px; }
+td, th { padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--rule);
+  vertical-align: top; }
+th { color: var(--dim); font-weight: 500; }
+td.num { text-align: right; }
+.kv td:first-child { color: var(--dim); width: 44%; }
+
+svg.wiremap, svg.chan { width: 100%; height: auto; display: block; margin: 8px 0; }
+svg text { fill: var(--text); font: 22px "Barlow", system-ui, sans-serif; }
+svg text.dim { fill: var(--dim); }
+
+label { display: block; font-size: 24px; color: var(--dim); margin: 14px 0 6px; }
+input { width: 100%; min-height: 96px; padding: 0 20px; background: #0a141c;
+  border: 3px solid var(--rule); border-radius: 10px; font-size: 32px; }
+
+#keys { display: flex; gap: 0; border-top: 2px solid var(--rule); background: #0a141c; }
+#keys button { flex: 1; background: none; border: 0; border-right: 2px solid var(--rule);
+  font-size: 30px; font-weight: 600; }
+#keys button:last-child { border-right: 0; }
+#keys button:active { background: var(--deck); }
+#k-ctx { color: var(--focus); }
+
+#modal { position: absolute; inset: 0; background: rgba(4, 9, 13, .86); display: grid;
+  place-items: center; padding: 32px; z-index: 5; }
+#modal[hidden], #osk[hidden] { display: none; }
+#modal .card { width: 100%; border: 3px solid var(--warn); }
+
+#osk { position: absolute; left: 0; right: 0; bottom: 0; background: #0a141c; z-index: 6;
+  border-top: 3px solid var(--focus); padding: 10px; }
+#osk .echo { min-height: 72px; padding: 12px 16px; font-size: 34px; background: var(--ink);
+  border-radius: 8px; margin-bottom: 10px; word-break: break-all; }
+#osk .r { display: flex; gap: 6px; margin-bottom: 6px; }
+#osk button { flex: 1; min-height: 88px; background: var(--deck); border: 0; border-radius: 8px;
+  font-size: 32px; padding: 0; }
+#osk button.w { flex: 2; }
+#osk button.ok { background: var(--focus); color: #14110a; font-weight: 700; }
+
+.spin { width: 30px; height: 30px; border: 4px solid var(--rule); border-top-color: var(--focus);
+  border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; border-top-color: var(--rule);
+  border-left-color: var(--focus); } }

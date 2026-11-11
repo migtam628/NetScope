@@ -1,0 +1,55 @@
+key,refs,qty,description,manufacturer,mpn,mpn_status,cost_1,cost_10,cost_100,cost_1000,alternates,lifecycle_risk,in_netlist
+som,M1,1,"Compute Module 5, wireless, 2 GB RAM, 16 GB eMMC",Raspberry Pi,CM5102016,known,98,98,98,95,"CM5104032 (4 GB/32 GB); CM5 Lite + industrial microSD","Single source. Maker states production to at least Jan 2036. Price rose during 2026 with memory costs: re-quote.",yes
+som_conn,J2 J3,2,"100-pin 0.4 mm board-to-board, CM5 mating half",Hirose,DF40C-100DS-0.4V(51),known,1.9,1.9,1.4,1.1,"none (defined by the module)","Mature part",no
+display,J1,1,"5 in 720x1280 DSI capacitive touch display",Raspberry Pi,Touch Display 2 (5 inch),known,40,40,40,38,"Waveshare 5-DSI-TOUCH-B class panel (needs driver check)","Maker states production to at least Jan 2030: shortest-lived major part. Plan a second source before volume.",yes
+rj45_a,J10,1,"RJ45 8P8C shielded, THT, no magnetics",Amphenol,RJHSE-5380,candidate,2.5,2.5,1.8,1.4,"Any shielded 8P8C without magnetics with >= 1.5 A/contact","Commodity",yes
+magjack,J11,1,"RJ45 with integrated 1000BASE-T magnetics and LEDs",TBD,TBD,tbd,5.5,5.5,4.0,3.2,"Bel / Pulse / Wurth 1G MagJack; use the CM5 IO board part as the reference","Commodity; pick one stocked by two distributors",yes
+relay,K1 K2 K3 K4,4,"DPDT signal relay, 3 V coil, non-latching, >= 1 A carry, low-capacitance contacts",Omron,G6K-2F-Y DC3,candidate,3.2,3.2,2.4,1.9,"Panasonic TQ2SA-3V; Kemet EC2-3NU","Mature. Must be characterised for gigabit return loss (see risks R-03).",yes
+magnetics_poe,T1,1,"1000BASE-T transformer module, 4 centre taps brought out, 802.3bt Type 4 current rating, 1500 Vrms",TBD,TBD,tbd,6.0,6.0,4.2,3.2,"Pulse / Wurth / Bel bt-rated discrete LAN transformer","Check bt (not just at) rating: many modules are only rated 350-600 mA per centre tap.",yes
+phy,U10,1,"Gigabit Ethernet PHY, RGMII, LinkMD cable diagnostics",Microchip,KSZ9131RNXI,known,4.2,4.2,3.4,2.9,"Analog Devices ADIN1300 (also has mainline cable test); Marvell 88E1512 (harder to buy)","Active part, mainline Linux driver with cable test",yes
+usb_mac,U11,1,"USB 3.1 Gen 1 to RGMII Ethernet MAC",Microchip,LAN7801-I/9JX,known,7.5,7.5,6.0,5.2,"Realtek RTL8153 (integrated PHY, no mainline cable test - loses TDR)","Active part, mainline lan78xx driver",yes
+xtal,Y1 Y2,2,"25 MHz crystal, 20 ppm",TBD,TBD,tbd,0.6,0.6,0.4,0.3,"any 25 MHz 3225 crystal meeting the PHY/MAC datasheet","Commodity",no
+tvs_eth,D10,2,"4-line low-capacitance TVS array, PHY side",Semtech,RClamp0524P,candidate,1.2,1.2,0.8,0.6,"TI TPD4E05U06; Littelfuse SP3012","Commodity",yes
+wiremap_prot,PROT1,1,"8x (PTC resettable fuse + 2.2 k pulse resistor + bidirectional TVS)",various,TBD,tbd,4.0,4.0,2.8,2.0,"n/a","Passives",yes
+mux,U30 U31,2,"8:1 analog mux, +/-15 V, latch-up immune",Analog Devices,ADG5408BRUZ,known,9.5,9.5,7.5,6.2,"ADG1408 (not latch-up immune); TI MUX508","Active part",yes
+afe_opamp,U32,1,"Precision dual op-amp, RRIO, 36 V",Texas Instruments,OPA2192IDR,candidate,3.5,3.5,2.6,2.1,"ADA4522-2; OPA2189","Active part",yes
+xtalk_afe,U33,1,"Tone driver + log/peak detector for pair-to-pair coupling (design not finalised)",TBD,TBD,tbd,4.0,4.0,3.0,2.2,"n/a","EXPERIMENTAL block - see docs/03",yes
+mcu,U40,1,"Cortex-M0+ MCU, 128 kB flash, LQFP-48",STMicroelectronics,STM32G0B1CBT6,known,5.5,5.5,4.2,3.5,"STM32G0B1CCT6 (256 kB); STM32G071CBT6 (no second I2C/USART margin)","Active, 10-year longevity program",yes
+keys,SW1,9,"Tactile switch 6 mm, 2.6 N, under silicone keypad",C&K,PTS645 series,candidate,0.35,0.35,0.22,0.15,"Alps SKHH; E-Switch TL3301","Commodity",yes
+leds,LED1,4,"Status LED 0603 (2x green, 1x amber, 1x red/green)",various,TBD,tbd,0.3,0.3,0.15,0.08,"n/a","Commodity",yes
+buzzer,BZ1,1,"SMD piezo transducer, ~4 kHz, >= 80 dB at 10 cm",TBD,TBD,tbd,1.2,1.2,0.9,0.7,"CUI / PUI / Murata SMD piezo","Commodity",yes
+bridge,D20 D21,8,"Schottky rectifier 100 V 2 A (two discrete bridges)",Vishay,SS2H10,candidate,0.45,0.45,0.30,0.22,"Any 100 V / 2 A Schottky in SMB/SMA","Commodity",yes
+tvs_poe,D22,1,"TVS 58 V 400 W unidirectional",Littelfuse,SMAJ58A,known,0.4,0.4,0.2,0.12,"Vishay SMAJ58A; Bourns SMAJ58A","Commodity, multi-source",yes
+pd,U21,1,"IEEE 802.3bt Type 4 PD interface, autoclass, PSE-type indicator outputs",Texas Instruments,TPS2372-4RGWR,known,3.9,3.9,3.0,2.4,"TPS2373-4 (adds DC/DC enable features)","Active part",yes
+ina,U22,1,"85 V 20-bit current/voltage/power monitor, I2C",Texas Instruments,INA228AIDGSR,known,5.2,5.2,4.0,3.3,"INA238 (16-bit)","Active part",yes
+adc_poe,U23,1,"16-bit 4-channel I2C ADC (centre-tap voltages)",Texas Instruments,ADS1115IDGSR,known,5.5,5.5,4.0,3.2,"ADS1015 (12-bit, sufficient)","Active part",yes
+expander,U24,1,"8-bit I2C GPIO expander",Texas Instruments,TCA9534APWR,known,1.1,1.1,0.8,0.6,"NXP PCA9534","Multi-source",yes
+load_fet,Q20,6,"N-MOSFET 100 V, logic-level gate, >= 3 A",TBD,TBD,tbd,0.9,0.9,0.6,0.45,"many","Commodity",yes
+load_res,R20,6,"Power resistor TO-220 20 W, pulse rated (values in docs/04)",Bourns,PWR220T-20 series,candidate,3.2,3.2,2.4,1.9,"Vishay LTO 30; Ohmite TCH35","Commodity",yes
+otp,U25,1,"Comparator + NTC hardware over-temperature cut-off for the load",TBD,TBD,tbd,1.0,1.0,0.7,0.5,"any micropower comparator","Commodity",yes
+iso_i2c,U20,1,"Bidirectional I2C isolator, reinforced",Texas Instruments,ISO1640BDR,candidate,3.6,3.6,2.8,2.3,"ISO1540; Analog Devices ADuM1250","Active part",yes
+iso_dcdc,PS1,1,"Isolated DC/DC 5 V to 5 V, 1 W, >= 1.5 kVdc",TBD,TBD,tbd,5.5,5.5,4.2,3.5,"Murata NXE1 / RECOM R1SX / CUI PDSE1 class","Commodity; multi-source footprint",yes
+usbc,J20,1,"USB Type-C 2.0 receptacle, 16-pin",GCT,USB4105-GF-A,candidate,0.9,0.9,0.65,0.5,"Amphenol 12401610E4#2A; Molex 216990","Commodity",yes
+tvs_usb,D30,1,"4-channel USB ESD array",Texas Instruments,TPD4E05U06DQAR,known,0.5,0.5,0.35,0.25,"Nexperia PRTR5V0U4D","Multi-source",yes
+charger,U50,1,"1-cell 5 A I2C buck charger with power path and ADC",Texas Instruments,BQ25895RTWR,known,4.6,4.6,3.5,2.9,"BQ25896 (3 A)","Active part",yes
+gauge,U51,1,"1-cell fuel gauge, ModelGauge m5, no characterisation needed",Analog Devices,MAX17055ETB+T,known,3.8,3.8,2.9,2.4,"TI BQ27441 (needs chemistry config)","Active part",yes
+battery,BT1,1,"Li-ion pack 1S3P 21700, ~15 Ah / 54 Wh, PCM + 10 k NTC, UN38.3 tested",custom pack house,TBD,tbd,38,36,30,24,"1S2P 10 Ah (shorter runtime, see docs/06)","Custom pack: 6-10 week lead time; needs UN38.3 report for shipping",yes
+boost,U52,1,"10 A synchronous boost, VBAT to 5.1 V",Texas Instruments,TPS61088RHLR,known,3.6,3.6,2.7,2.2,"TPS61089; MPS MP3423","Active part",yes
+boost_l,L1,1,"Power inductor 1.2-2.2 uH, Isat >= 12 A",TBD,TBD,tbd,1.5,1.5,1.0,0.8,"Coilcraft XAL / Wurth WE-LHMI class","Commodity",no
+buck_aon,U53,1,"60 nA IQ buck, 3.3 V always-on",Texas Instruments,TPS62840DLCR,known,1.9,1.9,1.4,1.1,"TPS62A01 (higher IQ)","Active part",yes
+buck_3v3,U54,1,"2 A buck, 5 V to 3.3 V",Texas Instruments,TLV62569DBVR,known,0.7,0.7,0.45,0.3,"many pin-compatible SOT-23 bucks","Multi-source",yes
+bipolar,U55,1,"Split-rail DC/DC, 5 V to +/-15 V",Texas Instruments,TPS65131RGER,candidate,4.2,4.2,3.2,2.6,"Charge-pump doubler/inverter pair","Active part",yes
+sd_reader,U60,1,"USB 2.0 SD card reader controller (DNP option)",Microchip,USB2244,candidate,3.0,3.0,2.3,1.9,"Genesys GL823K","Option, not populated on rev A",yes
+sd_socket,J30,1,"microSD push-push socket (DNP option)",TBD,TBD,tbd,1.2,1.2,0.8,0.6,"Molex / Hirose DM3","Option",yes
+m2,J31,1,"M.2 E-key socket, 2230 (DNP option for a second radio)",TBD,TBD,tbd,1.5,1.5,1.0,0.8,"TE / Amphenol M.2 E-key 4.2 mm","Option",yes
+debug,J40,1,"Tag-Connect footprint + 2x5 1.27 mm header (proto only)",various,TBD,tbd,0.8,0.8,0.3,0.1,"n/a","Proto only",yes
+passives,-,1,"Resistors, capacitors, ferrites, small inductors (~260 placements)",various,-,tbd,14,12,7,4.5,"n/a","Commodity",no
+pcb,-,1,"6-layer 1.6 mm FR-4 TG170, ENIG, controlled impedance, ~150 x 85 mm",fab house,-,tbd,45,30,12,6.5,"n/a","Standard stackup at any controlled-impedance fab",no
+assembly,-,1,"SMT assembly, double-sided, AOI + X-ray for QFN",CM,-,tbd,120,70,28,14,"n/a","Setup cost dominates below 100 units",no
+enclosure,-,1,"Two-shell PC/ABS housing + TPU bumper",-,-,tbd,85,70,45,11,"n/a","1/10: MJF nylon prints. 100: urethane casting. 1000: injection moulding (tooling NRE not included)",no
+keypad,-,1,"Silicone keypad with light pipes",-,-,tbd,20,14,6,2.2,"n/a","Custom tooling at volume",no
+spreader,-,1,"Aluminium heat spreader for PoE load + SoM",-,-,tbd,6,5,3,1.8,"n/a","CNC then stamped",no
+antenna,-,1,"2.4/5 GHz antenna with U.FL pigtail",Raspberry Pi,Compute Module 4/5 Antenna Kit,known,4,4,4,3.5,"none without re-testing radio compliance","Using the maker's antenna keeps the module's radio certification applicable (confirm with test lab)",no
+hardware,-,1,"Screws, inserts, gasket, display lens, lanyard post, labels",-,-,tbd,12,10,6,3.5,"n/a","Commodity",no
+terminator,-,1,"RT-1 remote terminator (one included per unit)",-,-,tbd,9,8,5,3,"n/a","See hardware/remote-terminator",no
+test,-,1,"Programming, calibration and functional test labour",-,-,tbd,30,20,10,5,"n/a","Needs the fixture from docs/09",no

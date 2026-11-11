@@ -1,0 +1,191 @@
+# NetScope X1 main board - block-level netlist (rev A, pre-schematic).
+#
+# This is the connectivity contract the KiCad schematic must implement. Pins
+# are named by FUNCTION, not package pin number: pin numbers are assigned
+# during schematic capture from the datasheets (Phase 3). Passives that are
+# pure datasheet application circuit (decoupling, compensation, straps) are
+# not listed; they come from each part's reference design.
+#
+# Domains:
+#   SYS   battery-referenced system electronics (processor, user-accessible)
+#   LINE  conductors that connect straight to the cable under test
+#   POE   rectified network power and everything referenced to it
+# tools/check_netlist.py enforces that a net never joins two domains except
+# through a part listed under `barriers` (transformer, isolator, relay...).
+#
+# `bom` keys refer to hardware/bom/bom.csv.
+
+barriers:
+  T1:  {type: transformer, rating: "1500 Vrms, 802.3bt Type 4 centre-tap current"}
+  U20: {type: digital isolator, rating: "ISO1640, reinforced"}
+  PS1: {type: isolated DC/DC, rating: ">= 1500 Vdc"}
+  K1:  {type: relay, rating: "contacts LINE<->LINE only; coil in SYS"}
+  K2:  {type: relay, rating: "contacts LINE<->LINE only; coil in SYS"}
+  K3:  {type: relay, rating: "contacts LINE<->LINE only; coil in SYS"}
+  K4:  {type: relay, rating: "contacts LINE<->LINE only; coil in SYS"}
+  J11: {type: integrated magnetics, rating: "1500 Vrms (MagJack internal transformer)"}
+  PROT1: {type: protection network, rating: "8x (PTC + 2k2 pulse resistor + bidirectional clamp to +/-15 V); only connected in TEST relay position on an unpowered cable"}
+
+components:
+  # --- compute -----------------------------------------------------------
+  M1:   {part: "Raspberry Pi CM5 wireless",          domain: SYS, bom: som}
+  J1:   {part: "DSI FFC to 5in touch display",       domain: SYS, bom: display}
+  # --- test port (Port A) --------------------------------------------------
+  J10:  {part: "RJ45 shielded, no magnetics",        domain: LINE, bom: rj45_a}
+  K1:   {part: "DPDT signal relay, pair 1-2",        domain: [LINE, SYS], bom: relay}
+  K2:   {part: "DPDT signal relay, pair 3-6",        domain: [LINE, SYS], bom: relay}
+  K3:   {part: "DPDT signal relay, pair 4-5",        domain: [LINE, SYS], bom: relay}
+  K4:   {part: "DPDT signal relay, pair 7-8",        domain: [LINE, SYS], bom: relay}
+  T1:   {part: "1000BASE-T PoE magnetics, 4 CT",     domain: [LINE, SYS, POE], bom: magnetics_poe}
+  U10:  {part: "KSZ9131RNX gigabit PHY",             domain: SYS, bom: phy}
+  U11:  {part: "LAN7801 USB3-to-RGMII MAC",          domain: SYS, bom: usb_mac}
+  D10:  {part: "PHY-side TVS array x2",              domain: SYS, bom: tvs_eth}
+  # --- wiremap front end ----------------------------------------------------
+  PROT1: {part: "8-line protection network",         domain: [LINE, SYS], bom: wiremap_prot}
+  U30:  {part: "ADG5408 8:1 mux (drive)",            domain: SYS, bom: mux}
+  U31:  {part: "ADG5408 8:1 mux (return/sense)",     domain: SYS, bom: mux}
+  U32:  {part: "precision op-amp, source + sense",   domain: SYS, bom: afe_opamp}
+  U33:  {part: "crosstalk tone driver/detector",     domain: SYS, bom: xtalk_afe}
+  # --- coprocessor ------------------------------------------------------------
+  U40:  {part: "STM32G0B1 coprocessor",              domain: SYS, bom: mcu}
+  SW1:  {part: "8-key keypad + power key",           domain: SYS, bom: keys}
+  LED1: {part: "status LEDs x4",                     domain: SYS, bom: leds}
+  BZ1:  {part: "piezo buzzer",                       domain: SYS, bom: buzzer}
+  # --- PoE measurement (isolated island) ---------------------------------------
+  D20:  {part: "Schottky bridge, Alt A",             domain: POE, bom: bridge}
+  D21:  {part: "Schottky bridge, Alt B",             domain: POE, bom: bridge}
+  D22:  {part: "TVS 58 V",                           domain: POE, bom: tvs_poe}
+  U21:  {part: "TPS2372-4 PD interface",             domain: POE, bom: pd}
+  U22:  {part: "INA228 V/I/P monitor",               domain: POE, bom: ina}
+  U23:  {part: "ADS1115 centre-tap voltage ADC",     domain: POE, bom: adc_poe}
+  U24:  {part: "TCA9534 load-step expander",         domain: POE, bom: expander}
+  Q20:  {part: "load-step MOSFETs x6",               domain: POE, bom: load_fet}
+  R20:  {part: "load resistor bank x6 on spreader",  domain: POE, bom: load_res}
+  U25:  {part: "over-temp comparator + NTC",         domain: POE, bom: otp}
+  U20:  {part: "ISO1640 I2C isolator",               domain: [SYS, POE], bom: iso_i2c}
+  PS1:  {part: "isolated 5 V DC/DC, 1 W",            domain: [SYS, POE], bom: iso_dcdc}
+  # --- uplink port (Port B) -----------------------------------------------------
+  J11:  {part: "RJ45 with integrated 1G magnetics",  domain: [LINE, SYS], bom: magjack}
+  # --- power -------------------------------------------------------------------
+  J20:  {part: "USB-C receptacle",                   domain: SYS, bom: usbc}
+  D30:  {part: "USB ESD array",                      domain: SYS, bom: tvs_usb}
+  U50:  {part: "BQ25895 1S charger",                 domain: SYS, bom: charger}
+  U51:  {part: "MAX17055 fuel gauge",                domain: SYS, bom: gauge}
+  BT1:  {part: "1S3P 21700 pack with PCM + NTC",     domain: SYS, bom: battery}
+  U52:  {part: "TPS61088 5 V boost",                 domain: SYS, bom: boost}
+  U53:  {part: "TPS62840 3V3 always-on buck",        domain: SYS, bom: buck_aon}
+  U54:  {part: "3V3 system LDO/buck for PHY + AFE",  domain: SYS, bom: buck_3v3}
+  U55:  {part: "+/-15 V charge pump for mux rails",  domain: SYS, bom: bipolar}
+  # --- options ---------------------------------------------------------------------
+  U60:  {part: "USB2244 microSD reader (DNP option)", domain: SYS, bom: sd_reader}
+  J30:  {part: "microSD socket (DNP option)",        domain: SYS, bom: sd_socket}
+  J31:  {part: "M.2 E-key 2230 (DNP option)",        domain: SYS, bom: m2}
+  J40:  {part: "debug: UART + SWD + boot header",    domain: SYS, bom: debug}
+
+nets:
+  # --- Port A line side: jack -> relay commons -------------------------------
+  - {name: A_L1, domain: LINE, nodes: [J10.P1, K1.COM_A]}
+  - {name: A_L2, domain: LINE, nodes: [J10.P2, K1.COM_B]}
+  - {name: A_L3, domain: LINE, nodes: [J10.P3, K2.COM_A]}
+  - {name: A_L6, domain: LINE, nodes: [J10.P6, K2.COM_B]}
+  - {name: A_L4, domain: LINE, nodes: [J10.P4, K3.COM_A]}
+  - {name: A_L5, domain: LINE, nodes: [J10.P5, K3.COM_B]}
+  - {name: A_L7, domain: LINE, nodes: [J10.P7, K4.COM_A]}
+  - {name: A_L8, domain: LINE, nodes: [J10.P8, K4.COM_B]}
+  # relay normally-closed (unpowered) position = LINK: line goes to magnetics only
+  - {name: A_M1, domain: LINE, nodes: [K1.NC_A, T1.LINE_A_P]}
+  - {name: A_M2, domain: LINE, nodes: [K1.NC_B, T1.LINE_A_N]}
+  - {name: A_M3, domain: LINE, nodes: [K2.NC_A, T1.LINE_B_P]}
+  - {name: A_M6, domain: LINE, nodes: [K2.NC_B, T1.LINE_B_N]}
+  - {name: A_M4, domain: LINE, nodes: [K3.NC_A, T1.LINE_C_P]}
+  - {name: A_M5, domain: LINE, nodes: [K3.NC_B, T1.LINE_C_N]}
+  - {name: A_M7, domain: LINE, nodes: [K4.NC_A, T1.LINE_D_P]}
+  - {name: A_M8, domain: LINE, nodes: [K4.NC_B, T1.LINE_D_N]}
+  # relay energised position = TEST: line goes to the protected wiremap AFE
+  - {name: A_T1, domain: LINE, nodes: [K1.NO_A, PROT1.IN1]}
+  - {name: A_T2, domain: LINE, nodes: [K1.NO_B, PROT1.IN2]}
+  - {name: A_T3, domain: LINE, nodes: [K2.NO_A, PROT1.IN3]}
+  - {name: A_T6, domain: LINE, nodes: [K2.NO_B, PROT1.IN6]}
+  - {name: A_T4, domain: LINE, nodes: [K3.NO_A, PROT1.IN4]}
+  - {name: A_T5, domain: LINE, nodes: [K3.NO_B, PROT1.IN5]}
+  - {name: A_T7, domain: LINE, nodes: [K4.NO_A, PROT1.IN7]}
+  - {name: A_T8, domain: LINE, nodes: [K4.NO_B, PROT1.IN8]}
+  - {name: RELAY_TEST_EN, domain: SYS, nodes: [U40.RELAY_DRV, K1.COIL, K2.COIL, K3.COIL, K4.COIL]}
+  # --- wiremap AFE (SYS side of the protection network) ------------------------
+  - {name: WM1, domain: SYS, nodes: [PROT1.OUT1, U30.S1, U31.S1]}
+  - {name: WM2, domain: SYS, nodes: [PROT1.OUT2, U30.S2, U31.S2]}
+  - {name: WM3, domain: SYS, nodes: [PROT1.OUT3, U30.S3, U31.S3]}
+  - {name: WM4, domain: SYS, nodes: [PROT1.OUT4, U30.S4, U31.S4]}
+  - {name: WM5, domain: SYS, nodes: [PROT1.OUT5, U30.S5, U31.S5]}
+  - {name: WM6, domain: SYS, nodes: [PROT1.OUT6, U30.S6, U31.S6]}
+  - {name: WM7, domain: SYS, nodes: [PROT1.OUT7, U30.S7, U31.S7]}
+  - {name: WM8, domain: SYS, nodes: [PROT1.OUT8, U30.S8, U31.S8]}
+  - {name: WM_DRIVE, domain: SYS, nodes: [U30.D, U32.SRC_OUT, U33.TONE_OUT]}
+  - {name: WM_RETURN, domain: SYS, nodes: [U31.D, U32.SENSE_IN, U33.DET_IN]}
+  - {name: WM_ADC_V, domain: SYS, nodes: [U32.V_OUT, U40.ADC_WM_V]}
+  - {name: WM_ADC_I, domain: SYS, nodes: [U32.I_OUT, U40.ADC_WM_I]}
+  - {name: XT_ADC, domain: SYS, nodes: [U33.DET_OUT, U40.ADC_XTALK]}
+  - {name: WM_MUX_SEL, domain: SYS, nodes: [U40.MUX_SEL, U30.A, U31.A]}
+  - {name: WM_ISRC_SEL, domain: SYS, nodes: [U40.ISRC_SEL, U32.RANGE]}
+  # --- Port A PHY side ----------------------------------------------------------
+  - {name: A_MDI_A, domain: SYS, nodes: [T1.PHY_A, U10.TXRX_A, D10.IO_A]}
+  - {name: A_MDI_B, domain: SYS, nodes: [T1.PHY_B, U10.TXRX_B, D10.IO_B]}
+  - {name: A_MDI_C, domain: SYS, nodes: [T1.PHY_C, U10.TXRX_C, D10.IO_C]}
+  - {name: A_MDI_D, domain: SYS, nodes: [T1.PHY_D, U10.TXRX_D, D10.IO_D]}
+  - {name: A_RGMII, domain: SYS, nodes: [U10.RGMII, U11.RGMII]}
+  - {name: A_MDIO, domain: SYS, nodes: [U10.MDIO, U11.MDIO]}
+  - {name: A_PHY_RST_N, domain: SYS, nodes: [U11.PHY_RESET_N, U10.RESET_N]}
+  - {name: USB3_1, domain: SYS, nodes: [M1.USB3_0, U11.USB]}
+  # --- PoE island ----------------------------------------------------------------
+  - {name: CT_A, domain: POE, nodes: [T1.CT_A, D20.AC1, U23.AIN0_DIV]}
+  - {name: CT_B, domain: POE, nodes: [T1.CT_B, D20.AC2, U23.AIN1_DIV]}
+  - {name: CT_C, domain: POE, nodes: [T1.CT_C, D21.AC1, U23.AIN2_DIV]}
+  - {name: CT_D, domain: POE, nodes: [T1.CT_D, D21.AC2, U23.AIN3_DIV]}
+  - {name: POE_VDD, domain: POE, nodes: [D20.POS, D21.POS, D22.K, U21.VDD, U22.VBUS, U22.IN_P]}
+  - {name: POE_VSS, domain: POE, nodes: [D20.NEG, D21.NEG, D22.A, U21.VSS, U23.GND, U22.GND, U24.GND, U20.GND2, PS1.VOUT_N, U25.GND]}
+  - {name: POE_LOAD_P, domain: POE, nodes: [U22.IN_N, R20.COMMON]}
+  - {name: POE_RTN, domain: POE, nodes: [U21.RTN, Q20.SOURCE]}
+  - {name: POE_LOAD_SW, domain: POE, nodes: [R20.LEGS, Q20.DRAIN]}
+  - {name: POE_LOAD_GATE, domain: POE, nodes: [U24.P0_5, Q20.GATE, U25.GATE_KILL]}
+  - {name: POE_IND, domain: POE, nodes: [U21.TPH_TPL_BT_PG, U24.P6_7_IN]}
+  - {name: POE_5V, domain: POE, nodes: [PS1.VOUT_P, U22.VS, U23.VDD, U24.VCC, U20.VCC2, U25.VCC]}
+  - {name: POE_I2C, domain: POE, nodes: [U20.BUS2, U22.I2C, U23.I2C, U24.I2C]}
+  - {name: SYS_I2C_POE, domain: SYS, nodes: [U40.I2C2, U20.BUS1]}
+  - {name: POE_ISO_EN, domain: SYS, nodes: [U40.POE_PWR_EN, PS1.EN]}
+  # --- Port B (uplink) -------------------------------------------------------------
+  - {name: B_MDI, domain: SYS, nodes: [M1.ETH_MDI, J11.PHY_SIDE]}
+  - {name: B_LEDS, domain: SYS, nodes: [M1.ETH_LEDS, J11.LEDS]}
+  # --- processor <-> coprocessor ------------------------------------------------------
+  - {name: COPROC_UART, domain: SYS, nodes: [M1.UART, U40.USART1, J40.UART_TAP]}
+  - {name: COPROC_BOOT, domain: SYS, nodes: [M1.GPIO_COPROC_BOOT_RST, U40.BOOT0_NRST]}
+  - {name: SWD, domain: SYS, nodes: [U40.SWD, J40.SWD]}
+  - {name: SOM_UART_DBG, domain: SYS, nodes: [M1.UART_DEBUG, J40.CONSOLE]}
+  - {name: SOM_NRPIBOOT, domain: SYS, nodes: [M1.NRPIBOOT, J40.RPIBOOT_JUMPER]}
+  - {name: SOM_PWR_EN, domain: SYS, nodes: [U40.SOM_PWR_EN, U52.EN]}
+  - {name: SOM_RUN, domain: SYS, nodes: [U40.SOM_RUN, M1.PMIC_EN_RUN]}
+  - {name: KEYS, domain: SYS, nodes: [SW1.MATRIX, U40.KEY_GPIO]}
+  - {name: STATUS_LEDS, domain: SYS, nodes: [U40.LED_PWM, LED1.A]}
+  - {name: BUZZ, domain: SYS, nodes: [U40.TIM_BUZZ, BZ1.DRV]}
+  - {name: DSI, domain: SYS, nodes: [M1.DSI1, J1.DSI]}
+  - {name: TOUCH_I2C, domain: SYS, nodes: [M1.I2C_DISPLAY, J1.I2C]}
+  # --- USB-C --------------------------------------------------------------------------
+  - {name: USBC_VBUS, domain: SYS, nodes: [J20.VBUS, U50.VBUS, D30.VBUS]}
+  - {name: USBC_D, domain: SYS, nodes: [J20.DP_DN, D30.IO, U50.DP_DN_SENSE, M1.USB2_OTG]}
+  - {name: USBC_CC, domain: SYS, nodes: [J20.CC1_CC2, U40.CC_SENSE_RD]}
+  # --- power tree -------------------------------------------------------------------
+  - {name: VBAT, domain: SYS, source: BT1.PLUS, nodes: [BT1.PLUS, U51.CELL, U50.BAT]}
+  - {name: VSYS, domain: SYS, source: U50.SYS, nodes: [U50.SYS, U52.VIN, U53.VIN]}
+  - {name: BAT_NTC, domain: SYS, nodes: [BT1.NTC, U50.TS, U51.THERM]}
+  - {name: +5V, domain: SYS, source: U52.VOUT, nodes: [U52.VOUT, M1.5V, J1.5V, U54.VIN, U55.VIN, PS1.VIN_P, K1.COIL_SUPPLY, K2.COIL_SUPPLY, K3.COIL_SUPPLY, K4.COIL_SUPPLY, U60.VBUS_IN, J31.3V3_VIA_REG]}
+  - {name: +3V3_AON, domain: SYS, source: U53.VOUT, nodes: [U53.VOUT, U40.VDD, M1.VBAT_RTC, U20.VCC1, SW1.PULLUP]}
+  - {name: +3V3, domain: SYS, source: U54.VOUT, nodes: [U54.VOUT, U10.VDD, U11.VDD, U32.VDD, U33.VDD, LED1.SUPPLY]}
+  - {name: +15V, domain: SYS, source: U55.VPOS, nodes: [U55.VPOS, U30.VDD, U31.VDD]}
+  - {name: -15V, domain: SYS, source: U55.VNEG, nodes: [U55.VNEG, U30.VSS, U31.VSS]}
+  - {name: PWR_I2C, domain: SYS, nodes: [U40.I2C1, U50.I2C, U51.I2C]}
+  - {name: CHG_INT, domain: SYS, nodes: [U50.INT, U51.ALRT, U40.PWR_IRQ]}
+  - {name: GND, domain: SYS, nodes: [M1.GND, U10.GND, U11.GND, U30.GND, U31.GND, U32.GND, U33.GND, U40.GND, U50.GND, U51.GND, U52.GND, U53.GND, U54.GND, U55.GND, BT1.MINUS, J20.GND, D10.GND, D30.GND, PROT1.CLAMP_RTN, PS1.VIN_N, U20.GND1, J1.GND, J40.GND, BZ1.GND, LED1.K, U60.GND, J30.GND, J31.GND]}
+  - {name: CHASSIS, domain: LINE, nodes: [J10.SHIELD, J11.SHIELD, T1.BOB_SMITH_HV_CAP]}
+  # --- options ----------------------------------------------------------------------
+  - {name: USB3_2_HS, domain: SYS, nodes: [M1.USB3_1_D, U60.USB]}
+  - {name: SD_BUS, domain: SYS, nodes: [U60.SD, J30.SD]}
+  - {name: PCIE, domain: SYS, nodes: [M1.PCIE, J31.PCIE]}

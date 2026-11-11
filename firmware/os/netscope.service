@@ -1,0 +1,18 @@
+# Example unit. Not yet run on a device.
+[Unit]
+Description=NetScope X1 diagnostic engine
+After=network.target
+
+[Service]
+User=netscope
+AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+EnvironmentFile=-/etc/netscope/ai.env
+ExecStart=/usr/bin/python3 -m netscope --hal linux --iface eth1 --wlan wlan0 --coproc /dev/ttyAMA0 serve --host 127.0.0.1 --port 8080 --reports /var/lib/netscope/reports
+Restart=on-failure
+RestartSec=2
+ProtectSystem=strict
+ReadWritePaths=/var/lib/netscope
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
