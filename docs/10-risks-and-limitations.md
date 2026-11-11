@@ -26,6 +26,7 @@
 | R-06 | Fuse / PTC coordination with the PoE TVS for over-voltage sources | Medium | Medium | Phase 3 calculation + SAFE-04 |
 | R-07 | Split-pair detection does not separate cleanly | High | Low | Ships disabled unless CBL-05 passes |
 | R-08 | USB 3 noise desensitises 2.4 GHz Wi-Fi | Medium | Medium | Layout rules (docs/11); shield can over the MAC; measure scan sensitivity |
+| R-13 | 10 Gb controller (AQC100) cannot be bought in small quantities: distributor sells trays of 210 only, none in stock, no backorders (2026-11-11) | High | High | Ask Marvell or a franchised distributor for samples; if none, the fiber port slips or needs a different controller, and none other is known to fit a single PCIe lane with a mainline driver |
 | R-09 | Display end of life (maker states Jan 2030) | Certain, later | Medium | Second-source 5 inch DSI panel and driver before volume |
 | R-10 | bt-rated magnetics with all four centre taps accessible are a narrow market | Medium | Medium | Select and sample in Phase 2 |
 | R-11 | TDR accuracy disappoints users who expect centimetres | Medium | Low | Publish measured accuracy; NVP calibration |

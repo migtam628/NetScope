@@ -2,6 +2,7 @@
 name = "netscope"
 description = "NetScope X1 diagnostic engine, API and simulator"
 requires-python = ">=3.11"
+license = { text = "PolyForm-Noncommercial-1.0.0" }
 dynamic = ["version"]
 dependencies = ["aiohttp>=3.9", "fpdf2>=2.7"]
 

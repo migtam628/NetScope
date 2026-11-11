@@ -67,4 +67,4 @@ The dev-kit spike: `docs/15-dev-kit-spike.md` has the kit list, procedures and p
 
 ## License
 
-Not yet chosen. All rights reserved by the project owner until a license file is added.
+Non-commercial only. Software is under PolyForm Noncommercial 1.0.0 (`LICENSE.md`); documents and hardware design files are under CC BY-NC-SA 4.0 (`LICENSE-DESIGN.txt`). See `NOTICE.md`. Commercial use needs written permission from the copyright holder.

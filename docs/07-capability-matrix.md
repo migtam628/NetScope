@@ -64,7 +64,7 @@ Nothing in this table is hardware-verified, because no hardware has been built.
 | Capability | Status | Validation | Limits |
 |---|---|---|---|
 | 10 Gb SFP+ link | DESIGN (in netlist, BOM, floorplan, housing) | Link against 10G-SR and 10G-LR switch ports | Throughput capped by the single PCIe lane at about 3.5-6 Gb/s; cannot prove a full 10 Gb circuit |
-| 1 Gb SFP modules | UNKNOWN | Check the controller documentation, then test | Not confirmed that the 10G controller runs 1 Gb optics |
+| 1 Gb SFP modules | LIKELY, UNPROVEN | Spike step 6 | The chip maker's own adapter built on this controller lists a 1 Gb module as supported; not shown at chip level or on this platform |
 | Optical power, wavelength, module identity (from the module's own diagnostics) | SIM + HOST-IO (EEPROM parser unit-tested; I2C read path never run) | Compare with an optical power meter | Only modules that report diagnostics; accuracy is the module's, typically +/-3 dB |
 | Fiber test in the engine and UI | SIM, 5 scenarios | Dirty connector, swapped fibers, speed mismatch against real switches | Diagnoses from light level and link only; no loss measurement, no fault distance |
 

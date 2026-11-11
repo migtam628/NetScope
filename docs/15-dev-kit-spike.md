@@ -23,6 +23,10 @@ The first estimate for this spike was about $400. That was too low. The LAN7801 
 | 9 | Relay test adapter | 4x DPDT signal relay from the BOM on a small board between two RJ45 breakouts | about $30 | Generic |
 | 10 | Things to test against | 802.3af, 802.3at and 802.3bt switches or injectors; one 24 V passive injector; cables of 2, 30 and 90-100 m; a cable with a known open and a known short; USB power meter; bench multimeter | borrow | From field stock |
 
+| 11 | 10 Gb fiber controller on a card | A PCIe SFP+ card built on the Marvell/Aquantia **AQC100** (Marvell's own AQN-100 adapter is one). Confirm the chip before buying: listings for other cards disagree about which chip they use | quote | Not checked |
+| 12 | Adapter to fit that card to the CM5 IO board | M.2 M-key to PCIe slot adapter with external power for the card | about $20 | Generic |
+| 13 | Fiber parts | One 10GBASE-SR module, one 1000BASE-SX module, one LC-LC multimode patch lead, a second device with a 10 Gb SFP+ port and one with a 1 Gb SFP port | borrow | From field stock |
+
 Items 4 and 5 are the long-lead and expensive ones. If they cannot be had, do not substitute an ordinary USB Ethernet adapter and call the step passed: the question is whether *this* MAC + PHY reports usable TDR through Linux.
 
 ## Step 1 - Linux engine and UI on the real SoM
@@ -89,6 +93,28 @@ Build the RT-1 terminator and the mux front end; port `firmware/coproc/wiremap.c
 | Gigabit link through the relay adapter over 90-100 m | Links at 1000 Mb/s; zero CRC errors in a 10-minute iperf3 run |
 | Same with the relay cycled 1,000 times | No change |
 
+## Step 6 - 10 Gb fiber controller on the SoM
+
+```
+lspci -vv | grep -A3 -i ethernet          # card present, link speed and width
+sudo ethtool eth2                          # link, speed
+sudo ethtool -m eth2                       # module identity and light levels, if the driver supports it
+iperf3 -c <10 Gb host> -t 30 ; iperf3 -c <10 Gb host> -t 30 -R
+sudo python -m netscope --hal linux --fiber-iface eth2 --sfp-bus <n> run fiber
+```
+
+| Check | Pass |
+|---|---|
+| Driver loads and the card works on the SoM's single PCIe lane at the default (Gen 2) setting | Yes, with the kernel to be shipped; record the version |
+| 10GBASE-SR module, 10 Gb far end | Links at 10 Gb |
+| Throughput each way | Record it. Expected roughly 3.5 Gb/s at Gen 2; this number becomes the published limit |
+| Same with the lane forced to Gen 3 | Record throughput and whether it is stable for 30 minutes. Only use Gen 3 in the product if it is |
+| **1000BASE-SX module, 1 Gb far end** | Links at 1 Gb. **If it does not, the product cannot serve 1 Gb fiber sites and the controller choice must be revisited** |
+| Module identity and light levels readable from Linux | Yes by `ethtool -m`, or note that the product must read the module over I2C itself (the design wires the cage's I2C to the SoM for this) |
+| Extra power with the port active | Record watts at the 5 V input |
+
+A bought card does not expose the cage's I2C pins, so the engine's own module-reading path cannot be tested here; that waits for the first board.
+
 ## Exit
 
-All five steps recorded. Any failed row has either a fix or an architecture change written into `docs/02` and `docs/10`. Then, and only then, start the schematic (`hardware/kicad/README.md`).
+All six steps recorded. Any failed row has either a fix or an architecture change written into `docs/02` and `docs/10`. Then, and only then, start the schematic (`hardware/kicad/README.md`).

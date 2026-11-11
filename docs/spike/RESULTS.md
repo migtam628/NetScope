@@ -29,5 +29,9 @@ Result: not run
 ## Step 5 - relay
 Result: not run
 
+## Step 6 - 10 Gb fiber controller
+Result: not run
+Gen 2 throughput (Gb/s): - Gen 3 throughput (Gb/s): - 1 Gb module links: - Extra power (W): -
+
 ## Decisions taken as a result
 -
