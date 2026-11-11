@@ -8,6 +8,8 @@
 - Added a 10 Gb SFP+ fiber port (AQC100 + cage) in place of the optional M.2 slot; main board re-planned with all three ports and the microSD slot on the top end. No fiber software yet.
 - Licences added: PolyForm Noncommercial 1.0.0 for software, CC BY-NC-SA 4.0 for documents and design files.
 - Spike plan: step 6 and kit items for the 10 Gb fiber controller. BOM: controller price checked ($25, trays of 210, out of stock).
+- Length Calibration tool and a length scale for Cable Test (cable types differ in signal speed).
+- BOM now includes the second board and the board-to-board cables; Realtek RTL8127ATF recorded as the fallback 10 Gb controller.
 - Fiber test tool: SFP module identity, received light against the module's own thresholds, link; four simulator scenarios; SFF-8472 EEPROM parser. Untested on hardware.
 - microSD moved to a board tab with a slot in the side wall; power key given a recessed front opening.
 - Housing model now includes both boards, standoffs, relocated LED openings and buzzer vents; board-vs-shell-vs-battery clash checks; shaded review images.

@@ -23,7 +23,7 @@ The first estimate for this spike was about $400. That was too low. The LAN7801 
 | 9 | Relay test adapter | 4x DPDT signal relay from the BOM on a small board between two RJ45 breakouts | about $30 | Generic |
 | 10 | Things to test against | 802.3af, 802.3at and 802.3bt switches or injectors; one 24 V passive injector; cables of 2, 30 and 90-100 m; a cable with a known open and a known short; USB power meter; bench multimeter | borrow | From field stock |
 
-| 11 | 10 Gb fiber controller on a card | A PCIe SFP+ card built on the Marvell/Aquantia **AQC100** (Marvell's own AQN-100 adapter is one). Confirm the chip before buying: listings for other cards disagree about which chip they use | quote | Not checked |
+| 11 | 10 Gb fiber controller on a card | A PCIe SFP+ card built on the Marvell/Aquantia **AQC100** (Marvell's own AQN-100 adapter is one). Confirm the chip before buying: listings for other cards disagree about which chip they use. **Also buy a Realtek RTL8127ATF SFP+ card** (seen at about $68) and run the same step on it: it is the fallback if the AQC100 cannot be sourced | quote | AQC100 card not checked |
 | 12 | Adapter to fit that card to the CM5 IO board | M.2 M-key to PCIe slot adapter with external power for the card | about $20 | Generic |
 | 13 | Fiber parts | One 10GBASE-SR module, one 1000BASE-SX module, one LC-LC multimode patch lead, a second device with a 10 Gb SFP+ port and one with a 1 Gb SFP port | borrow | From field stock |
 

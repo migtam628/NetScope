@@ -1,5 +1,7 @@
 # 11 - PCB design guide (inputs for Phase 3-4)
 
+> Updated 2026-11-11: the design is now two boards (88 x 88 mm six-layer main board, 88 x 56 mm two-layer keypad/USB-C board) joined by two flat-flex cables, and has a 10 Gb SFP+ port. Placement is in `hardware/pcb/`. The rules below apply to the main board. Additions: route the 10 Gb pair from the controller to the SFP+ cage as a short 100-ohm differential pair on one layer with no stubs, following the cage maker's footprint and the controller's layout guide; keep the 5 V flat-flex power conductors paralleled evenly and check voltage drop at 5 A.
+
 No KiCad files exist yet. This is the rule set the schematic and layout must follow. Nothing here has been reviewed by a fabricator.
 
 ## Board

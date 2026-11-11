@@ -170,6 +170,24 @@ def test_cloud_ai_is_optional_and_redacts(monkeypatch):
     assert "10.x.x.117" in text and "1.1.1.1" in text
 
 
+def test_length_calibration_and_scale():
+    hal = SimHal("rt1_pass")                       # 42 m, far end reads as an open
+    assert run_tool(hal, "tdr_calibrate").status == Status.NOT_TESTED          # no length given
+    cal = run_tool(hal, "tdr_calibrate", {"known_length_m": 45})
+    assert cal.status == Status.PASS
+    scale = cal.measurements["length_scale"]
+    assert abs(scale - 45 / 42.15) < 0.01
+    plain = run_tool(hal, "cable").measurements["length_m"]
+    scaled = run_tool(hal, "cable", {"length_scale": scale}).measurements["length_m"]
+    assert abs(plain - 42) < 1.5 and abs(scaled - 45) < 0.3
+    # nonsense scales are ignored rather than applied
+    assert run_tool(hal, "cable", {"length_scale": 9}).measurements["length_m"] == plain
+    # a live switch port has no open end to calibrate against
+    assert run_tool(SimHal("healthy"), "tdr_calibrate", {"known_length_m": 30}).status == Status.FAIL
+    odd = run_tool(hal, "tdr_calibrate", {"known_length_m": 90})
+    assert odd.status == Status.WARNING
+
+
 def test_fiber_port_diagnoses():
     ok = run_tool(SimHal("healthy"), "fiber")
     assert ok.status == Status.PASS and "10GBASE-SR 850 nm" in ok.summary

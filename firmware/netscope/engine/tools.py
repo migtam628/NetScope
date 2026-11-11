@@ -85,9 +85,30 @@ _FIX = {
 }
 
 
-@tool("cable", "Cable Test", "cable")
+def _scaled_tdr(hal: Hal, scale: float) -> list[dict]:
+    """PHY TDR with the length correction applied (see the tdr_calibrate tool)."""
+    out = hal.tdr()
+    if scale != 1.0:
+        for t in out:
+            if t["length_m"] is not None:
+                t["length_m"] = round(t["length_m"] * scale, 1)
+    return out
+
+
+def _scale(p: dict) -> float:
+    try:
+        s = float(p.get("length_scale") or 1.0)
+    except (TypeError, ValueError):
+        s = 1.0
+    return s if 0.5 <= s <= 1.5 else 1.0
+
+
+@tool("cable", "Cable Test", "cable", params=(("length_scale", "number", 1.0),))
 def cable_test(hal: Hal, p: dict) -> TestResult:
     res = _r("cable")
+    scale = _scale(p)
+    if scale != 1.0:
+        res.measurements["length_scale"] = scale
     v = hal.port_voltage_scan()
     vclass = poe_tables.classify_port_voltage(v["alt_a_v"], v["alt_b_v"], v["pulsing"])
     res.measurements.update(port_voltage=v, voltage_class=vclass)
@@ -109,7 +130,7 @@ def cable_test(hal: Hal, p: dict) -> TestResult:
 
     tdr = None
     try:
-        tdr = hal.tdr()
+        tdr = _scaled_tdr(hal, scale)
         res.measurements["tdr"] = tdr
     except HalUnsupported as e:
         res.findings.append(f"TDR not available: {e}")
@@ -203,6 +224,51 @@ def cable_test(hal: Hal, p: dict) -> TestResult:
             res.summary += f" Cable is about {res.measurements['length_m']:.0f} m (open end)."
     res.findings.append("Continuity/TDR verification only. This is not a TIA/ISO "
                         "certification test.")
+    return res
+
+
+@tool("tdr_calibrate", "Length Calibration", "cable", params=(("known_length_m", "number", 0),))
+def tdr_calibrate(hal: Hal, p: dict) -> TestResult:
+    """Work out the length correction for this cable type from a cable of known length.
+
+    Cable types differ in signal speed (NVP), so the same PHY reading means a
+    different length on different cable.  Measure a known length, open at the
+    far end, and enter the resulting scale in Cable Test for that cable type.
+    """
+    res = _r("tdr_calibrate")
+    try:
+        known = float(p.get("known_length_m") or 0)
+    except (TypeError, ValueError):
+        known = 0.0
+    if known < 10:
+        res.summary = "Enter the true length of a reference cable of at least 10 m, far end unplugged."
+        return res
+    tdr = hal.tdr()
+    lens = [t["length_m"] for t in tdr if t["code"] == "open" and t["length_m"]]
+    res.measurements.update(tdr=tdr, known_length_m=known)
+    if len(lens) < 3:
+        res.status = Status.FAIL
+        res.summary = "Calibration needs an open-ended cable: fewer than three pairs showed an open end."
+        res.recommendations = ["Unplug the far end (no terminator, no equipment) and repeat."]
+        return res
+    measured = statistics.median(lens)
+    scale = round(known / measured, 3)
+    res.measurements.update(measured_m=round(measured, 1), length_scale=scale)
+    spread = max(lens) - min(lens)
+    if not 0.8 <= scale <= 1.25:
+        res.status = Status.WARNING
+        res.summary = (f"Measured {measured:.1f} m for a {known:g} m cable (scale {scale}). That is "
+                       f"further off than cable type alone explains.")
+        res.recommendations = ["Check the stated length and that all pairs are intact, then repeat."]
+    else:
+        res.status = Status.PASS
+        res.summary = (f"Measured {measured:.1f} m for a {known:g} m cable. Use length scale "
+                       f"{scale} in Cable Test for this cable type.")
+    if spread > 0.05 * measured + 1.0:
+        res.findings.append(f"Pairs disagree by {spread:.1f} m; pairs in one cable normally differ "
+                            f"by a few percent because each is twisted at a different rate.")
+    res.findings.append("The correction applies to this cable type only. Accuracy of the result is "
+                        "still limited by the PHY (about a metre).")
     return res
 
 

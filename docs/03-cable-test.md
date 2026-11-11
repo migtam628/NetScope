@@ -32,7 +32,7 @@ Honest limits, each reflected in the result text:
 
 ### PHY TDR
 
-The KSZ9131's LinkMD reports open / short per pair with a distance. The mainline driver converts the PHY's reading to distance in steps of 0.4 m, and a published kernel test log shows a 2 m cable reported as about 1.2 m on three pairs and 0.0 m on the fourth. So: resolution well under a metre, error on the order of a metre, and a blind zone on very short cables. Treat a result as "about 18 m", not "17.7 m". Accuracy also depends on the cable's velocity factor (NVP), which varies by cable type; the UI will need an NVP setting and a calibrate-on-known-length function (not yet implemented).
+The KSZ9131's LinkMD reports open / short per pair with a distance. The mainline driver converts the PHY's reading to distance in steps of 0.4 m, and a published kernel test log shows a 2 m cable reported as about 1.2 m on three pairs and 0.0 m on the fourth. So: resolution well under a metre, error on the order of a metre, and a blind zone on very short cables. Treat a result as "about 18 m", not "17.7 m". Accuracy also depends on the cable's velocity factor (NVP), which varies by cable type; the Length Calibration tool measures a cable of known length and gives a length scale to enter in Cable Test for that cable type (implemented in the engine and simulator; the scale is entered per test, not yet stored per cable type).
 
 With an RT-1 or nothing at the far end every healthy pair reflects at the end of the cable. That reflection is the length measurement; the UI labels it "end of cable", not "open".
 

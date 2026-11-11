@@ -13,7 +13,7 @@ pip install -e ".[dev]"
 python -m netscope serve                             # open http://127.0.0.1:8080/
 python -m netscope scenarios                         # 21 simulated situations
 python -m netscope --scenario dns_fail run autodiag
-pytest                                               # 131 tests
+pytest                                               # 132 tests
 make -C coproc test                                  # coprocessor C core
 ```
 

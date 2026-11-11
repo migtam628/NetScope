@@ -11,7 +11,7 @@ from urllib.parse import quote_plus
 
 ROOT = Path(__file__).resolve().parents[1]
 QTYS = [("1", "cost_1"), ("10", "cost_10"), ("100", "cost_100"), ("1,000", "cost_1000")]
-SERVICE = {"pcb", "assembly", "enclosure", "keypad", "spreader", "hardware", "terminator", "test"}
+SERVICE = {"pcb", "pcb_lower", "assembly", "enclosure", "keypad", "spreader", "hardware", "terminator", "test"}
 OPTIONS = {"sd_reader", "sd_socket"}
 
 
