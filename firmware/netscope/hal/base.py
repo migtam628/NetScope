@@ -106,6 +106,13 @@ class Hal:
         """file, packets, note"""
         _no("Packet capture")
 
+    # -- fiber (SFP+ port) ---------------------------------------------------
+    def sfp_status(self) -> dict:
+        """present, vendor, part_number, serial, type, wavelength_nm, connector, nominal_mbps,
+        ddm, tx_power_dbm, rx_power_dbm, temp_c, rx_low_alarm_dbm, rx_low_warn_dbm,
+        rx_high_alarm_dbm, los, link, speed"""
+        _no("Fiber port")
+
     # -- Wi-Fi -------------------------------------------------------------
     def wifi_scan(self) -> list[dict]:
         """ssid, bssid, freq, channel, width, rssi, security, util_pct, stations"""

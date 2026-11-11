@@ -36,6 +36,11 @@ EXPECT = {
     "poe_denied": ("FAIL", "poe", {"poe": "FAIL", "internet": "PASS"}),
     "poe_bt": ("PASS", "none", {"poe": "PASS"}),
     "poe_sag": ("PASS", "none", {"poe": "PASS"}),
+    # fiber scenarios leave the copper path healthy; Auto Diagnose does not test fiber
+    "fiber_dirty": ("PASS", "none", {"internet": "PASS"}),
+    "fiber_no_light": ("PASS", "none", {"internet": "PASS"}),
+    "fiber_mismatch": ("PASS", "none", {"internet": "PASS"}),
+    "fiber_empty": ("PASS", "none", {"internet": "PASS"}),
 }
 
 
@@ -163,3 +168,26 @@ def test_cloud_ai_is_optional_and_redacts(monkeypatch):
     text = req["messages"][0]["content"]
     assert "IDF2-SW03" not in text and "10.20.30.117" not in text
     assert "10.x.x.117" in text and "1.1.1.1" in text
+
+
+def test_fiber_port_diagnoses():
+    ok = run_tool(SimHal("healthy"), "fiber")
+    assert ok.status == Status.PASS and "10GBASE-SR 850 nm" in ok.summary
+    assert ok.measurements["rx_power_dbm"] == -3.1
+    assert any("cannot prove a full" in f for f in ok.findings)     # 10 Gb throughput limit is stated
+    assert any("not a calibrated power meter" in f for f in ok.findings)
+
+    dirty = run_tool(SimHal("fiber_dirty"), "fiber")
+    assert dirty.status == Status.WARNING and any("little margin" in f for f in dirty.findings)
+    assert any("Clean both connector" in r for r in dirty.recommendations)
+
+    dark = run_tool(SimHal("fiber_no_light"), "fiber")
+    assert dark.status == Status.FAIL and "no light" in dark.summary
+    assert "swap the two fibers" in dark.recommendations[0]
+
+    mism = run_tool(SimHal("fiber_mismatch"), "fiber")
+    assert mism.status == Status.FAIL and "no link" in mism.summary
+    assert any("same speed" in r for r in mism.recommendations)
+
+    empty = run_tool(SimHal("fiber_empty"), "fiber")
+    assert empty.status == Status.NOT_TESTED and "No SFP module" in empty.summary

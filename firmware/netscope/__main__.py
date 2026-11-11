@@ -21,7 +21,7 @@ MARK = {"PASS": "[PASS]", "FAIL": "[FAIL]", "WARNING": "[WARN]", "NOT_TESTED": "
 def make_hal(args):
     if args.hal == "linux":
         from .hal.linux import LinuxHal
-        return LinuxHal(args.iface, args.wlan, args.coproc)
+        return LinuxHal(args.iface, args.wlan, args.coproc, args.fiber_iface, args.sfp_bus)
     from .hal.sim import SimHal
     return SimHal(args.scenario)
 
@@ -100,6 +100,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--iface", default="eth0", help="test-port interface (linux backend)")
     p.add_argument("--wlan", default="wlan0", help="Wi-Fi interface (linux backend)")
     p.add_argument("--coproc", default=None, help="coprocessor serial device (device only)")
+    p.add_argument("--fiber-iface", default=None, help="SFP+ interface (linux backend, device only)")
+    p.add_argument("--sfp-bus", type=int, default=None, help="I2C bus number of the SFP cage")
     sub = p.add_subparsers(dest="command", required=True)
 
     s = sub.add_parser("serve", help="run the API and touch UI")

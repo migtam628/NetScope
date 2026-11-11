@@ -305,3 +305,44 @@ def parse_cdp(payload: bytes) -> dict:
         elif typ == 0x001A:
             out["poe_mdi"] = True
     return out
+
+
+# --------------------------------------------------------------------------
+# SFP / SFP+ module EEPROM (SFF-8472)
+# --------------------------------------------------------------------------
+_SFP_CONNECTOR = {0x01: "SC", 0x07: "LC", 0x0B: "optical pigtail", 0x21: "copper pigtail",
+                  0x22: "RJ45", 0x23: "no separable connector"}
+
+
+def _dbm(raw: int) -> float | None:
+    """SFF-8472 optical power: unsigned, 0.1 uW per count."""
+    import math
+    return None if raw == 0 else round(10 * math.log10(raw / 10000.0), 1)
+
+
+def parse_sff8472(a0: bytes, a2: bytes | None = None) -> dict:
+    """Decode the identity page (I2C 0x50) and, if given, the diagnostics page (0x51)."""
+    if len(a0) < 96:
+        raise ValueError("SFP identity page must be at least 96 bytes")
+
+    def text(lo: int, hi: int) -> str:
+        return a0[lo:hi].decode("ascii", "replace").strip()
+
+    ten_g, one_g = a0[3], a0[6]
+    kind = ("10GBASE-SR" if ten_g & 0x10 else "10GBASE-LR" if ten_g & 0x20 else
+            "10GBASE-LRM" if ten_g & 0x40 else "10GBASE-ER" if ten_g & 0x80 else
+            "1000BASE-SX" if one_g & 0x01 else "1000BASE-LX" if one_g & 0x02 else
+            "1000BASE-CX" if one_g & 0x04 else "1000BASE-T" if one_g & 0x08 else "unknown")
+    out = dict(present=True, vendor=text(20, 36), part_number=text(40, 56), serial=text(68, 84),
+               type=kind, wavelength_nm=struct.unpack("!H", a0[60:62])[0] or None,
+               connector=_SFP_CONNECTOR.get(a0[2], f"code 0x{a0[2]:02x}"),
+               nominal_mbps=a0[12] * 100, ddm=bool(a0[92] & 0x40),
+               tx_power_dbm=None, rx_power_dbm=None, temp_c=None,
+               rx_low_alarm_dbm=None, rx_low_warn_dbm=None, rx_high_alarm_dbm=None)
+    if out["ddm"] and a2 and len(a2) >= 106:
+        u16 = lambda i: struct.unpack("!H", a2[i:i + 2])[0]   # noqa: E731
+        out.update(temp_c=round(struct.unpack("!h", a2[96:98])[0] / 256, 1),
+                   tx_power_dbm=_dbm(u16(102)), rx_power_dbm=_dbm(u16(104)),
+                   rx_high_alarm_dbm=_dbm(u16(32)), rx_low_alarm_dbm=_dbm(u16(34)),
+                   rx_low_warn_dbm=_dbm(u16(38)))
+    return out

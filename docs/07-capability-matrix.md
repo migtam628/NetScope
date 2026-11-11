@@ -65,8 +65,8 @@ Nothing in this table is hardware-verified, because no hardware has been built.
 |---|---|---|---|
 | 10 Gb SFP+ link | DESIGN (in netlist, BOM, floorplan, housing) | Link against 10G-SR and 10G-LR switch ports | Throughput capped by the single PCIe lane at about 3.5-6 Gb/s; cannot prove a full 10 Gb circuit |
 | 1 Gb SFP modules | UNKNOWN | Check the controller documentation, then test | Not confirmed that the 10G controller runs 1 Gb optics |
-| Optical power, wavelength, module identity (from the module's own diagnostics) | NOT STARTED | Compare with an optical power meter | Only modules that report diagnostics; accuracy is the module's, typically +/-3 dB |
-| Fiber tools in the engine and UI | NOT STARTED | - | No software for this port exists yet |
+| Optical power, wavelength, module identity (from the module's own diagnostics) | SIM + HOST-IO (EEPROM parser unit-tested; I2C read path never run) | Compare with an optical power meter | Only modules that report diagnostics; accuracy is the module's, typically +/-3 dB |
+| Fiber test in the engine and UI | SIM, 5 scenarios | Dirty connector, swapped fibers, speed mismatch against real switches | Diagnoses from light level and link only; no loss measurement, no fault distance |
 
 ## Wi-Fi
 

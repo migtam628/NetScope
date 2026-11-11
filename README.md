@@ -11,9 +11,9 @@ cd firmware
 python -m venv .venv && . .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 python -m netscope serve                             # open http://127.0.0.1:8080/
-python -m netscope scenarios                         # 17 simulated situations
+python -m netscope scenarios                         # 21 simulated situations
 python -m netscope --scenario dns_fail run autodiag
-pytest                                               # 125 tests
+pytest                                               # 131 tests
 make -C coproc test                                  # coprocessor C core
 ```
 

@@ -20,6 +20,7 @@ const chip = st => `<span class="chip ${st}">${LABEL[st] || st}</span>`;
 const GLYPH = {
   cable: '<path d="M8 20h48v18l-8 8H16l-8-8z"/><path d="M20 20v-8m8 8v-8m8 8v-8m8 8v-8M32 46v10"/>',
   poe: '<path d="M36 6 16 36h14l-4 22 22-32H34z"/>',
+  fiber: '<path d="M6 32h18M40 32h18"/><circle cx="32" cy="32" r="8"/><path d="M32 10v8M32 46v8M16 16l6 6M42 42l6 6M48 16l-6 6M22 42l-6 6"/>',
   network: '<circle cx="32" cy="12" r="6"/><circle cx="12" cy="52" r="6"/><circle cx="52" cy="52" r="6"/><path d="M32 18v14M12 46V32h40v14"/>',
   wifi: '<path d="M6 24c15-14 37-14 52 0M15 34c10-9 24-9 34 0M24 44c5-4 11-4 16 0"/><circle cx="32" cy="53" r="2"/>',
   discovery: '<circle cx="27" cy="27" r="17"/><path d="m40 40 16 16"/>',
@@ -198,7 +199,7 @@ function measurements(r) {
   if (m.entries) h += table(['Address', 'MAC', 'Vendor'], m.entries.map(x => [x.address, x.mac, x.vendor]));
   if (m.neighbors && m.neighbors.length) { const n = m.neighbors[0]; h += kv({ Switch: n.system_name, Port: n.port_id, 'Port description': n.port_description, VLAN: n.vlan, Management: n.mgmt_address, 'PoE capable': n.poe_mdi == null ? null : (n.poe_mdi ? 'yes' : 'no') }); }
   if (m.load_test) h += kv({ 'Load requested': m.load_test.requested_w + ' W', 'Voltage under load': m.load_test.voltage_v + ' V', Current: Math.round(m.load_test.current_a * 1000) + ' mA', Delivered: m.load_test.power_w + ' W' });
-  const skip = new Set(['wiremap', 'tdr', 'aps', 'channels', 'hops', 'entries', 'neighbors', 'load_test', 'crosstalk_db', 'port_voltage', 'roam_events', 'partner_modes', 'ping', 'http', 'length_m']);
+  const skip = new Set(['wiremap', 'tdr', 'aps', 'channels', 'hops', 'entries', 'neighbors', 'load_test', 'crosstalk_db', 'port_voltage', 'roam_events', 'partner_modes', 'ping', 'http', 'length_m', 'present', 'ddm', 'los']);
   const flat = {};
   for (const [k, v] of Object.entries(m)) if (!skip.has(k) && v !== null && typeof v !== 'object') flat[k.replace(/_/g, ' ')] = v;
   for (const [k, v] of Object.entries(m)) if (!skip.has(k) && Array.isArray(v) && v.every(x => typeof x !== 'object')) flat[k.replace(/_/g, ' ')] = v.join(', ');
@@ -227,6 +228,7 @@ screens.home = () => {
     ${row('tool:cable', 'Cable Test', 'Wiremap, length, distance to fault', { glyph: 'cable' })}
     ${row('poe', 'PoE Analyzer', 'Standard, class, voltage, load test', { glyph: 'poe' })}
     ${row('network', 'Network Diagnostics', 'Link, DHCP, ping, DNS, traceroute', { glyph: 'network' })}
+    ${row('tool:fiber', 'Fiber Test', 'SFP+ module, light level, link', { glyph: 'fiber' })}
     ${row('wifi', 'Wi-Fi Analyzer', 'Networks, channels, signal', { glyph: 'wifi' })}
     ${row('discovery', 'Device Discovery', 'Switch port, VLAN, neighbours', { glyph: 'discovery' })}
     ${row('reports', 'Test Reports', Object.keys(state.session).length ? Object.keys(state.session).length + ' unsaved result(s)' : 'Saved reports and export', { glyph: 'reports' })}

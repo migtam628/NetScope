@@ -29,7 +29,7 @@ Results are labelled provenance `host`. Wiremap, PoE and battery report "not ava
 
 | Path | Contents |
 |---|---|
-| `firmware/netscope/hal/` | `base.py` interface, `sim.py` simulator (17 scenarios), `linux.py` real backend, `coproc.py` serial protocol |
+| `firmware/netscope/hal/` | `base.py` interface, `sim.py` simulator (21 scenarios), `linux.py` real backend, `coproc.py` serial protocol |
 | `firmware/netscope/cable/` | RT-1 model, cable model, wiremap analyser |
 | `firmware/netscope/net/` | PoE tables; DHCP, DNS, LLDP, CDP, ethtool and iw parsers |
 | `firmware/netscope/engine/` | Tools, Auto Diagnose, rules assistant, optional cloud AI |

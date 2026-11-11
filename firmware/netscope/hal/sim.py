@@ -30,6 +30,7 @@ DEFAULTS = dict(
     link=dict(up=True, speed=1000, duplex="full"),
     lldp=dict(system_name="IDF2-SW03", port_id="Gi1/0/14", port_description="Office 214 drop B",
               vlan=30, mgmt_address="10.20.0.3"),
+    fiber=dict(rx=-3.1, link=True),
     dhcp=True, gateway_ok=True, dns_local_ok=True, internet_ok=True, captive=False)
 
 SCENARIOS: dict[str, dict] = {
@@ -68,6 +69,13 @@ SCENARIOS: dict[str, dict] = {
     "poe_sag": dict(title="PoE+ over a long, high-resistance run",
                     cable=dict(length_m=96.0, far_end="equipment"),
                     poe=dict(kind="ieee", cls=4, volts=51.0, loop_ohms=15.0, four_pair=False)),
+    "fiber_dirty": dict(title="Fiber: link up but weak light (dirty connector)",
+                        fiber=dict(rx=-12.4, link=True)),
+    "fiber_no_light": dict(title="Fiber: no light received (TX/RX swapped or break)",
+                           fiber=dict(rx=None, link=False)),
+    "fiber_mismatch": dict(title="Fiber: light but no link (1 Gb far end, 10 Gb module)",
+                           fiber=dict(rx=-4.0, link=False)),
+    "fiber_empty": dict(title="Fiber: no SFP module fitted", fiber=None),
 }
 
 PAIR_LETTER = dict(zip(PAIRS, "ABCD"))
@@ -290,6 +298,18 @@ class SimHal(Hal):
     def capture(self, seconds: int) -> dict:
         return dict(file=None, packets=0,
                     note="Packet capture is not simulated: there are no real packets to save.")
+
+    # -- fiber ---------------------------------------------------------------
+    def sfp_status(self) -> dict:
+        f = self.cfg["fiber"]
+        if f is None:
+            return dict(present=False)
+        return dict(present=True, vendor="FS (simulated)", part_number="SFP-10GSR-85",
+                    serial="SIM0001234", type="10GBASE-SR", wavelength_nm=850, connector="LC",
+                    nominal_mbps=10300, ddm=True, tx_power_dbm=-2.4, rx_power_dbm=f["rx"],
+                    temp_c=41.5, rx_low_alarm_dbm=-13.9, rx_low_warn_dbm=-9.9,
+                    rx_high_alarm_dbm=0.5, los=f["rx"] is None, link=f["link"],
+                    speed=10000 if f["link"] else None)
 
     # -- Wi-Fi -------------------------------------------------------------
     def wifi_scan(self) -> list[dict]:

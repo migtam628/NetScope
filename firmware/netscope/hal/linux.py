@@ -58,8 +58,10 @@ class LinuxHal(Hal):
     name = "linux"
 
     def __init__(self, iface: str = "eth0", wlan: str | None = "wlan0",
-                 coproc_path: str | None = None):
+                 coproc_path: str | None = None, fiber_iface: str | None = None,
+                 sfp_i2c_bus: int | None = None):
         self.iface, self.wlan = iface, wlan
+        self.fiber_iface, self.sfp_i2c_bus = fiber_iface, sfp_i2c_bus
         self.mcu: cp.Coproc | None = None
         if coproc_path:
             try:
@@ -343,6 +345,38 @@ class LinuxHal(Hal):
         if not m or not os.path.exists(path):
             return dict(file=None, packets=0, note=(out.strip().splitlines() or ["tcpdump failed"])[-1])
         return dict(file=path, packets=int(m.group(1)), note=None)
+
+    # -- fiber ---------------------------------------------------------------
+    def sfp_status(self) -> dict:
+        """Read the module EEPROM over I2C and the link state from the fiber interface.
+        Not run on hardware: there is no board with an SFP+ cage yet."""
+        if self.fiber_iface is None or self.sfp_i2c_bus is None:
+            raise HalUnsupported("No fiber port is configured on this backend.")
+        try:
+            from smbus2 import SMBus  # optional dependency, device only
+        except ImportError:
+            raise HalUnsupported("Reading the SFP module needs the smbus2 package.") from None
+
+        def page(bus, addr: int, length: int) -> bytes:
+            return bytes(b for off in range(0, length, 32)
+                         for b in bus.read_i2c_block_data(addr, off, min(32, length - off)))
+        try:
+            with SMBus(self.sfp_i2c_bus) as bus:
+                try:
+                    a0 = page(bus, 0x50, 96)
+                except OSError:
+                    return dict(present=False)
+                try:
+                    a2 = page(bus, 0x51, 128)
+                except OSError:
+                    a2 = None
+        except OSError as e:
+            raise HalError(f"cannot open I2C bus {self.sfp_i2c_bus}: {e}") from None
+        out = parsers.parse_sff8472(a0, a2)
+        link = parsers.parse_ethtool_link(_run(["ethtool", self.fiber_iface]))
+        out.update(link=link["up"], speed=link["speed"],
+                   los=out["ddm"] and out["rx_power_dbm"] is None)
+        return out
 
     # -- Wi-Fi -------------------------------------------------------------
     def _wlan(self) -> str:

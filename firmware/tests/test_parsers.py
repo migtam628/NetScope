@@ -166,3 +166,39 @@ def test_poe_tables_and_voltage_classes():
     assert poe.classify_port_voltage(4.4, 0.0, True) == "pse_probing"
     assert poe.classify_port_voltage(0.0, 24.1, False) == "passive"
     assert poe.classify_port_voltage(-48.0, 0.0, False) == "passive"
+
+
+def test_sff8472_identity_and_diagnostics():
+    import math
+    a0 = bytearray(96)
+    a0[0], a0[2], a0[3], a0[12] = 0x03, 0x07, 0x10, 103          # SFP, LC, 10GBASE-SR, 10.3 Gb/s
+    a0[20:36] = b"ACME OPTICS     "
+    a0[40:56] = b"AO-10G-SR       "
+    a0[60:62] = struct.pack("!H", 850)
+    a0[68:84] = b"SN12345         "
+    a0[92] = 0x68                                                # diagnostics implemented
+    a2 = bytearray(128)
+    a2[32:34] = struct.pack("!H", 11220)                         # rx high alarm  +0.5 dBm
+    a2[34:36] = struct.pack("!H", 407)                           # rx low alarm  -13.9 dBm
+    a2[38:40] = struct.pack("!H", 1023)                          # rx low warn    -9.9 dBm
+    a2[96:98] = struct.pack("!h", int(41.5 * 256))
+    a2[102:104] = struct.pack("!H", 5754)                        # tx -2.4 dBm
+    a2[104:106] = struct.pack("!H", 4898)                        # rx -3.1 dBm
+    m = parsers.parse_sff8472(bytes(a0), bytes(a2))
+    assert (m["vendor"], m["part_number"], m["serial"]) == ("ACME OPTICS", "AO-10G-SR", "SN12345")
+    assert m["type"] == "10GBASE-SR" and m["wavelength_nm"] == 850 and m["connector"] == "LC"
+    assert m["nominal_mbps"] == 10300 and m["ddm"] and m["temp_c"] == 41.5
+    assert (m["tx_power_dbm"], m["rx_power_dbm"]) == (-2.4, -3.1)
+    assert (m["rx_low_alarm_dbm"], m["rx_low_warn_dbm"], m["rx_high_alarm_dbm"]) == (-13.9, -9.9, 0.5)
+    assert round(10 * math.log10(4898 / 10000), 1) == -3.1
+
+    a2[104:106] = b"\0\0"                                        # no light at all
+    assert parsers.parse_sff8472(bytes(a0), bytes(a2))["rx_power_dbm"] is None
+    a0[92] = 0x00                                                # module without diagnostics
+    plain = parsers.parse_sff8472(bytes(a0), bytes(a2))
+    assert not plain["ddm"] and plain["rx_power_dbm"] is None
+    a0[3], a0[6], a0[2] = 0x00, 0x02, 0x01                       # 1000BASE-LX, SC
+    lx = parsers.parse_sff8472(bytes(a0))
+    assert lx["type"] == "1000BASE-LX" and lx["connector"] == "SC"
+    with pytest.raises(ValueError):
+        parsers.parse_sff8472(b"\x03" * 10)

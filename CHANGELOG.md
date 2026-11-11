@@ -6,6 +6,7 @@
 - Added `docs/15-dev-kit-spike.md` and a results template; corrected the spike budget from about $400 to $700-$900.
 - Board floorplan: two boards (88 x 88 mm main, 88 x 56 mm keypad/USB-C) with every netlist part placed and checked for fit, height and isolation spacing. Not a routed layout.
 - Added a 10 Gb SFP+ fiber port (AQC100 + cage) in place of the optional M.2 slot; main board re-planned with all three ports and the microSD slot on the top end. No fiber software yet.
+- Fiber test tool: SFP module identity, received light against the module's own thresholds, link; four simulator scenarios; SFF-8472 EEPROM parser. Untested on hardware.
 - microSD moved to a board tab with a slot in the side wall; power key given a recessed front opening.
 - Housing model now includes both boards, standoffs, relocated LED openings and buzzer vents; board-vs-shell-vs-battery clash checks; shaded review images.
 - Block schematics as PDF for the main board (10 sheets) and the bench kit (7 sheets), generated from the netlists by `tools/render_schematic.py`. Not KiCad, not ERC-checked.

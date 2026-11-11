@@ -490,6 +490,77 @@ def capture_test(hal: Hal, p: dict) -> TestResult:
 
 
 # ---------------------------------------------------------------------------
+# Fiber (SFP+ port)
+# ---------------------------------------------------------------------------
+_FIBER_CLEAN = ("Clean both connector end-faces and inspect them; a dirty connector is the most "
+                "common cause of low light.")
+
+
+@tool("fiber", "Fiber Port (SFP+)", "fiber")
+def fiber_test(hal: Hal, p: dict) -> TestResult:
+    """Module identity, received light and link.  Light levels are the module's own
+    diagnostics (typically +/-3 dB), not a calibrated optical power meter."""
+    res = _r("fiber")
+    st = hal.sfp_status()
+    res.measurements.update(st)
+    if not st.get("present"):
+        res.summary = "No SFP module fitted in the fiber port."
+        return res
+    ident = f"{st.get('type') or 'SFP'} {st.get('wavelength_nm') or '?'} nm ({st.get('vendor') or 'unknown vendor'})"
+    rx, lo_alarm, lo_warn = st.get("rx_power_dbm"), st.get("rx_low_alarm_dbm"), st.get("rx_low_warn_dbm")
+    hi_alarm = st.get("rx_high_alarm_dbm")
+    res.findings.append("Light levels are the module's own readings (typically +/-3 dB), not a "
+                        "calibrated power meter.")
+    if not st.get("ddm"):
+        res.findings.append("This module does not report optical power; only link state is known.")
+
+    no_light = bool(st.get("los")) or (st.get("ddm") and rx is None) or \
+        (rx is not None and lo_alarm is not None and rx < lo_alarm)
+    if no_light:
+        res.status = Status.FAIL
+        level = "no light" if rx is None or st.get("los") else f"{rx} dBm"
+        res.summary = f"{ident}: received light too low ({level})."
+        res.recommendations = [
+            "Check transmit/receive are not swapped: swap the two fibers at one end.",
+            _FIBER_CLEAN,
+            "Confirm the far end is powered, its port is enabled and it uses the same fiber type "
+            "and wavelength as this module.",
+            "If light is still missing, the fiber is broken or badly bent: test it with a light "
+            "source or fault locator."]
+        return res
+    if not st.get("link"):
+        res.status = Status.FAIL
+        res.summary = f"{ident}: light is received ({rx} dBm) but there is no link."
+        res.findings.append("Light without link means the two ends do not agree on the signal, "
+                            "not that the fiber is broken.")
+        res.recommendations = [
+            "Check both ends are the same speed (a 1 Gb port will not link to a 10 Gb module).",
+            "Check both ends use the same wavelength and fiber type; single-fiber modules must be "
+            "a matched pair.",
+            "Check the far port is not administratively down."]
+        return res
+    speed = st.get("speed")
+    res.status = Status.PASS
+    res.summary = f"{ident}: link up at {speed} Mb/s" + (f", receiving {rx} dBm." if rx is not None else ".")
+    if rx is not None and hi_alarm is not None and rx > hi_alarm:
+        res.status = Status.WARNING
+        res.findings.append(f"Received light {rx} dBm is above the module's maximum ({hi_alarm} dBm).")
+        res.recommendations.append("Fit an attenuator: a long-reach module on a short fiber can "
+                                   "overload the receiver.")
+    elif rx is not None and lo_warn is not None and rx < lo_warn:
+        res.status = Status.WARNING
+        res.findings.append(f"Received light {rx} dBm is below the module's warning level "
+                            f"({lo_warn} dBm): the link works but has little margin.")
+        res.recommendations += [_FIBER_CLEAN, "Check for tight bends and count the patch points "
+                                              "in the run; each connector costs light."]
+    if speed and speed >= 10000:
+        res.findings.append("This port links at 10 Gb, but the tester can only pass about "
+                            "3.5-6 Gb/s of traffic. A throughput test here cannot prove a full "
+                            "10 Gb circuit.")
+    return res
+
+
+# ---------------------------------------------------------------------------
 # Wi-Fi
 # ---------------------------------------------------------------------------
 def channel_summary(aps: list[dict]) -> list[dict]:
