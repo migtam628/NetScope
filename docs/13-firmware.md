@@ -73,6 +73,22 @@ Frame: `0x7E | LEN | CMD | SEQ | payload | CRC16-CCITT`, 115200 8N1.
 
 Both sides are tested against the same vectors.
 
+Payloads are little-endian. Exact layouts (as implemented in `coproc/dispatch.c` and `hal/coproc.py`):
+
+| Reply | Layout |
+|---|---|
+| PING | major u8, minor u8, patch u8 |
+| VSCAN | alt A mV i32, alt B mV i32, flags u8 (bit0 pulsing) |
+| WIREMAP | 56 x u32 ohms, order a=1..8, b=1..8, a != b |
+| XTALK | 6 x i16 centi-dB: 1-2/3-6, 1-2/4-5, 1-2/7-8, 3-6/4-5, 3-6/7-8, 4-5/7-8 |
+| POE_STATUS | mV i32, kind u8 (0 none, 1 IEEE, 2 passive), class u8 (0xFF none), flags u8 (bit0 four-pair, bit1 denied, bit2 alt B) |
+| POE_LOAD | request: mW u32, ms u16. Reply: mV i32, mA i32, no-load mV i32, held u8 |
+| BATTERY | % u8, mV u16, mA i16, 0.1 C i16, health u8, cycles u16, flags u8 (bit0 charging), minutes u16 (0xFFFF unknown) |
+| LED | request: index u8, state u8 |
+| BUZZ | request: Hz u16, ms u16 |
+
+Interlocks enforced by the dispatcher: the relay enters TEST only when every pin is under 12 V; WIREMAP and XTALK need the relay in TEST; a refused scan forces the relay back to LINK; POE_LOAD needs the relay in LINK; the relay never moves while a load is applied.
+
 ## Device OS (planned, not built)
 
 - **Base**: Raspberry Pi OS Lite (64-bit) for bring-up, moving to a Buildroot or Yocto image for production (read-only root, smaller, reproducible).

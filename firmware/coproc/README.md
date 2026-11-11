@@ -11,15 +11,16 @@ and the isolated PoE measurement bus.
 |---|---|
 | `proto.c/.h` | Serial framing. Host-tested (`make test`), vectors shared with the Python side. |
 | `wiremap.c/.h` | Scan sequencing and the voltage safety gate. Host-tested against a fake front end. |
-| `test_host.c` | Host unit test. Runs in CI. |
+| `dispatch.c/.h` | Command dispatcher: request frame in, reply frame out, with the relay and voltage interlocks. Host-tested; reply bytes are cross-checked against the Python unpackers. |
+| `test_host.c`, `test_dispatch.c` | Host unit tests. Run in CI. |
 
 ## What is not here yet
 
 The STM32 port layer (`port_stm32g0/`): clock/GPIO/ADC/UART setup, the
 `ns_afe_t` implementation for the real front end, relay drivers, the I2C
 drivers for the isolated INA228 + ADC, charger and fuel gauge, the
-TPS2372-4 `TPH/TPL/BT` decode (datasheet section 7.3.5), key scanning and
-the command dispatcher. It cannot be written credibly before the schematic
+TPS2372-4 `TPH/TPL/BT` decode (datasheet section 7.3.5) and key scanning:
+that is, the implementation of every callback in `ns_hal_t` (dispatch.h). It cannot be written credibly before the schematic
 pinout is frozen (Phase 3) and cannot be verified before boards exist
 (Phase 7). Nothing in this directory has run on a microcontroller.
 
