@@ -19,6 +19,9 @@
 - BOM: isolated DC/DC and PoE magnetics moved from "tbd" to "candidate".
 - KiCad 9 project for the main board, generated from the block netlist (`tools/gen_kicad.py`): seven hierarchical sheets of block symbols, domain net classes, a 2.5 mm cross-domain clearance rule, and a board file with the outline, mounting holes and placement guides. Checked with KiCad 9.0.9 by `tools/check_kicad.py` (ERC clean, exported netlist identical to the YAML netlist, isolation rules proven to fire). Block level only: function-named pins, no footprints, no layout.
 - RT-1 remote terminator rev A: real KiCad capture and a routed two-layer board (17.8 x 39.8 mm), generated from the firmware's terminator definition (`tools/gen_rt1.py`, `tools/layout_rt1.py`) and checked by `tools/check_rt1.py` (ERC, netlist against the firmware, DRC with schematic parity). Gerbers, drill, BOM and placement files in `hardware/remote-terminator/fab-rev-a/`. Not fabricated.
+- Lower (keypad and USB-C) board rev A: real KiCad capture and a routed two-layer board, 88 x 56 mm, 49 parts (`tools/gen_lower.py`, `tools/layout_lower.py`, `tools/check_lower.py`). Defines the J50 / J51 cable pin assignments. Gerbers, BOM and placement in `hardware/kicad/netscope-x1-lower/fab-rev-a/`. Not fabricated; USB 2.0 pair impedance is not controlled on this stack.
+- `tools/gridrouter.py`: the project's own two-layer grid router, used for the lower board. Low-speed boards only.
+- Block netlist: status LEDs no longer take a +3V3 supply pin (they are driven to ground from the coprocessor), and D30 pin 5 is left open. Floorplan: real courtyard sizes for the two FFC connectors and for D30 (now SOT-666).
 - RT-1 protection note corrected: the series resettable fuse preferred earlier cannot trip at the fault currents involved (12-57 mA) and is withdrawn. Rev A uses 2512 resistor footprints instead; surviving a passive injector is still open.
 
 ## 0.1.0 - 2026-11-11

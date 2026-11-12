@@ -1,6 +1,76 @@
-# KiCad project
+# KiCad projects
 
-`netscope-x1/` is a KiCad 9 project for the main board. Open `netscope-x1/netscope-x1.kicad_pro`.
+Three KiCad 9 projects, at three different levels of completeness. Read the status column before opening one.
+
+| Project | Board | Status |
+|---|---|---|
+| `netscope-x1-lower/` | Lower board: keys, status LEDs, buzzer, USB-C | **Real capture, routed, rule-checked.** Gerbers exported. Not fabricated |
+| `../remote-terminator/kicad/rt-1/` | RT-1 remote terminator | **Real capture, routed, rule-checked.** Gerbers exported. Not fabricated |
+| `netscope-x1/` | Main board | **Block level only.** Sheets, net names, domains and outline; no pin-accurate schematic, no layout |
+
+## Why the main board is not at the same level yet
+
+A pin-accurate main-board schematic cannot be completed honestly today, for three specific reasons:
+
+1. **The fiber controller's pinout is not public.** Marvell publishes a product brief for the AQC100 and supplies the datasheet under NDA. Without it the fiber sheet cannot be captured. Either the datasheet is obtained through a distributor, or the design changes to a part or module with public documentation.
+2. **Fifteen BOM lines are still "tbd"** (`../bom/bom.csv`), among them the PoE magnetics. A part that has not been chosen has no pins to draw.
+3. **The bench kit has not been run** (`docs/15-dev-kit-spike.md`). It decides whether the test-port MAC/PHY pair and the fiber controller work at all on this platform.
+
+Everything not blocked by those three can be captured now, sheet by sheet: coprocessor, power, wiremap front end, Port A relays and jack, the PoE measurement island and the board-to-board connectors.
+
+Routing is a separate limit. The lower board and the RT-1 were routed by script with the project's own grid router (`tools/gridrouter.py`), which is adequate for low-speed two-layer boards. It does no impedance control, length matching or differential-pair routing, so it is **not** adequate for the main board's 10 Gb serial link, PCIe, USB 3 and RGMII. Those need interactive layout by someone with the tools and experience for it.
+
+## Lower board (`netscope-x1-lower/`)
+
+![Lower board rev A, front and back copper](netscope-x1-lower/lower-board.png)
+
+88 x 56 mm, two layers, 49 parts. Nine tactile keys (Up, Down, Left, Right, OK, Back, Home, Fn, Power), each with a 10 k pull-up and 100 n; four status LEDs; a piezo buzzer; a USB-C receptacle on the back with ESD protection and CC pull-downs; two FFC connectors to the main board.
+
+Checked by `python3 tools/check_lower.py` with KiCad 9.0.9:
+
+- ERC: 0 violations, real library symbols.
+- Every J50 / J51 pin carries the net in the pin table below.
+- The cable nets map onto exactly the eight block-netlist nets that the floorplan says cross between the boards.
+- Circuit rules: each key has its switch, pull-up and capacitor; each LED its series resistor; both CC pins 5.1 k to ground; both pads of each USB data line joined.
+- DRC with schematic parity: 0 violations, 0 unconnected, 0 parity issues (643 track segments, 258 vias).
+
+What is not verified, and what to know before ordering:
+
+- **USB 2.0 impedance is not controlled.** On a two-layer 1.6 mm board the data pair is simply two 0.2 mm tracks side by side over a ground pour, about 70 mm long with roughly 4 mm of length difference. USB 2.0 high speed often works like this; it is untested here. If it does not, the fix is a four-layer version of this board.
+- **3 A through the power cable** relies on ten 0.5 A contacts each way and a 1.5 mm trunk. Each pair of VBUS pads at the connector goes through a single 0.8 / 0.4 mm via.
+- **D30 pin 5 is left open** deliberately, so the part does not clamp VBUS at 5 V. The data lines are still clamped by its internal diode. This follows common practice for this part, not a bench measurement.
+- **Buzzer loudness** with direct 3.3 V drive is unmeasured, and the **LED resistor value** assumes LEDs with about 2 V forward drop.
+- Footprints are KiCad's library footprints for the named parts; none was compared against the manufacturer's drawing here. The key switch is a generic 6 x 6 mm through-hole footprint with no specific part number chosen.
+- Reference designators for small parts are on the fabrication layer, not the silkscreen.
+
+### Cable pin assignments (the main board must mirror these)
+
+J51, 20-way, power: pins 1-10 VBUS, pins 11-20 GND.
+
+J50, 30-way, signals. Pin 1 is the end nearest the board centre.
+
+| Pin | Net | Pin | Net | Pin | Net |
+|---|---|---|---|---|---|
+| 1 | GND | 11 | KEY_FN | 21 | KEY_OK |
+| 2 | LED4 | 12 | GND | 22 | KEY_DOWN |
+| 3 | LED3 | 13 | USB_DP | 23 | KEY_LEFT |
+| 4 | LED2 | 14 | USB_DN | 24 | GND |
+| 5 | LED1 | 15 | GND | 25 | +3V3_AON |
+| 6 | GND | 16 | CC1 | 26 | +3V3_AON |
+| 7 | KEY_PWR | 17 | CC2 | 27 | GND |
+| 8 | KEY_BACK | 18 | GND | 28 | not connected |
+| 9 | BUZZ | 19 | KEY_RIGHT | 29 | not connected |
+| 10 | KEY_HOME | 20 | KEY_UP | 30 | GND |
+
+Both connectors are Hirose FH12, 0.5 mm pitch. Whether the cable is same-side or opposite-side, and therefore whether pin 1 meets pin 1 or pin 30 on the main board, is decided when the main-board connectors are placed. It is not decided yet.
+
+Files: `fab-rev-a/gerbers/` (Gerbers and drill), `fab-rev-a/lower-bom.csv`, `lower-placement.csv`, `lower-schematic.pdf`.
+
+Regenerating: `python3 tools/gen_lower.py` (schematic), `python3 tools/layout_lower.py --force` (placement and routing, needs numpy), `python3 tools/check_lower.py --fab hardware/kicad/netscope-x1-lower/fab-rev-a`. Once the board is edited by hand in KiCad, stop running the layout script.
+
+## Main board (`netscope-x1/`)
+
+Open `netscope-x1/netscope-x1.kicad_pro`.
 
 **It is a block-level project, not schematic capture and not a layout.** It puts the checked block netlist into KiCad so that capture can start from a project that already has the sheets, reference designators, net names, electrical domains and isolation rules in place. Nothing in it can be sent to a fabricator.
 
@@ -35,7 +105,7 @@ The checker was itself tested by breaking things on purpose: a mis-named label f
 - **No application circuits.** Decoupling, straps, crystals' load capacitors, compensation networks, pull-ups, test points and ESD parts beyond the block-level ones are absent.
 - **The board file is an outline with guides.** The rectangles are approximate part envelopes from the floorplan. The 6-layer stack-up is KiCad's default, not the one in `docs/11-pcb-design-guide.md`.
 - **2.5 mm is a design value**, not a safety rating. Creepage and clearance across the PoE barrier need a review against the applicable standard before layout.
-- The lower (keypad and USB-C) board has no KiCad project yet. Its parts are on the main project's sheets.
+- The lower board's parts still appear on these block sheets, because the block netlist covers the whole instrument. Their real schematic is the lower-board project above.
 
 ## How to go from here to real capture
 

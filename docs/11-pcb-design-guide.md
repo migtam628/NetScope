@@ -69,7 +69,7 @@ Targets: 100 ohm differential for Ethernet MDI; 90 ohm differential for USB 3 an
 
 ## Deliverables checklist for Phase 4 (none exist yet)
 
-- [ ] KiCad project: schematic, PCB, project-local symbol/footprint libraries (started: block-level project only, see `hardware/kicad/README.md`)
+- [ ] KiCad project: schematic, PCB, project-local symbol/footprint libraries (lower board and RT-1: captured, routed and rule-checked; main board: block level only; see `hardware/kicad/README.md`)
 - [ ] ERC and DRC reports with zero unexplained waivers
 - [ ] Gerbers (X2), drill, IPC-356 netlist
 - [ ] Pick-and-place, assembly drawings, BOM export that matches `hardware/bom/bom.csv`

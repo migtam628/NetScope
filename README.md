@@ -50,7 +50,7 @@ Why each was chosen, and what was rejected, is in `docs/02-architecture.md`.
 | `hardware/schematic/` | Block schematics (PDF) of the main board and the bench kit, generated from the netlists |
 | `hardware/spike/` | Bench-kit netlist |
 | `hardware/pcb/` | Two-board floorplan (placement, not routed) with checks |
-| `hardware/kicad/` | KiCad 9 project generated from the netlist: block-level schematic (ERC clean, matches the netlist), board outline with placement guides. Not pin-accurate, no layout |
+| `hardware/kicad/` | KiCad 9 projects. Lower (keypad / USB-C) board: real schematic, routed, rule-checked, Gerbers. Main board: block level only (ERC clean, matches the netlist, outline with placement guides); see its README for what blocks real capture |
 | `hardware/remote-terminator/` | RT-1 remote terminator: KiCad schematic and routed two-layer board (rev A, rule-checked, not fabricated), Gerbers, BOM |
 | `mechanical/` | Parametric enclosure and board assemblies (CadQuery): STEP, STL, 3MF, drawings, shaded review images |
 | `tools/` | Netlist check, schematic renderer, KiCad generators and checkers (main board, RT-1), cost roll-up, power budget |

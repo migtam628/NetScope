@@ -68,3 +68,8 @@ jobs:
           /usr/bin/python3 tools/gen_rt1.py
           git diff --exit-code -- hardware/remote-terminator/kicad
       - run: /usr/bin/python3 tools/check_rt1.py
+      - name: Lower board schematic is in step with its generator
+        run: |
+          /usr/bin/python3 tools/gen_lower.py
+          git diff --exit-code -- hardware/kicad/netscope-x1-lower/netscope-x1-lower.kicad_sch
+      - run: /usr/bin/python3 tools/check_lower.py

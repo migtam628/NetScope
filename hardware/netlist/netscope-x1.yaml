@@ -183,7 +183,7 @@ nets:
   - {name: DSI, domain: SYS, nodes: [M1.DSI1, J1.DSI]}
   - {name: TOUCH_I2C, domain: SYS, nodes: [M1.I2C_DISPLAY, J1.I2C]}
   # --- USB-C --------------------------------------------------------------------------
-  - {name: USBC_VBUS, domain: SYS, nodes: [J20.VBUS, U50.VBUS, D30.VBUS]}
+  - {name: USBC_VBUS, domain: SYS, nodes: [J20.VBUS, U50.VBUS]}      # D30 pin 5 is left open: see hardware/kicad/README.md
   - {name: USBC_D, domain: SYS, nodes: [J20.DP_DN, D30.IO, U50.DP_DN_SENSE, M1.USB2_OTG]}
   - {name: USBC_CC, domain: SYS, nodes: [J20.CC1_CC2, U40.CC_SENSE_RD]}
   # --- power tree -------------------------------------------------------------------
@@ -192,7 +192,7 @@ nets:
   - {name: BAT_NTC, domain: SYS, nodes: [BT1.NTC, U50.TS, U51.THERM]}
   - {name: +5V, domain: SYS, source: U52.VOUT, nodes: [U52.VOUT, M1.5V, J1.5V, U54.VIN, U55.VIN, PS1.VIN_P, K1.COIL_SUPPLY, K2.COIL_SUPPLY, K3.COIL_SUPPLY, K4.COIL_SUPPLY, U60.VBUS_IN, U70.VIN_VIA_REG, J32.VCC_VIA_SWITCH]}
   - {name: +3V3_AON, domain: SYS, source: U53.VOUT, nodes: [U53.VOUT, U40.VDD, M1.VBAT_RTC, U20.VCC1, SW1.PULLUP]}
-  - {name: +3V3, domain: SYS, source: U54.VOUT, nodes: [U54.VOUT, U10.VDD, U11.VDD, U32.VDD, U33.VDD, LED1.SUPPLY]}
+  - {name: +3V3, domain: SYS, source: U54.VOUT, nodes: [U54.VOUT, U10.VDD, U11.VDD, U32.VDD, U33.VDD]}      # status LEDs are driven from U40 to ground, no supply pin
   - {name: +15V, domain: SYS, source: U55.VPOS, nodes: [U55.VPOS, U30.VDD, U31.VDD]}
   - {name: -15V, domain: SYS, source: U55.VNEG, nodes: [U55.VNEG, U30.VSS, U31.VSS]}
   - {name: PWR_I2C, domain: SYS, nodes: [U40.I2C1, U50.I2C, U51.I2C]}
