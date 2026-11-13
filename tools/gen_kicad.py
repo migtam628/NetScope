@@ -31,7 +31,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
-from kicad_lib import Sheet, load_symbol, pin_info  # noqa: E402
+from kicad_lib import CUSTOM, Sheet, dump, load_symbol, pin_info  # noqa: E402
 from main_sheets import CAPTURED, MCU, REFINES, U40_PINS  # noqa: E402
 
 NETLIST = ROOT / "hardware/netlist/netscope-x1.yaml"
@@ -312,6 +312,8 @@ def project_file(d: Design) -> str:
     # Only the net classes and their assignments are generated; every other setting
     # in an existing project file (KiCad rewrites it on save) is kept as it is.
     prj["meta"] = {"filename": f"{PROJECT}.kicad_pro", "version": prj.get("meta", {}).get("version", 3)}
+    rules = prj.setdefault("board", {}).setdefault("design_settings", {}).setdefault("rules", {})
+    rules["min_through_hole_diameter"] = 0.2               # thermal vias in the library footprints are 0.2 mm
     net = prj.setdefault("net_settings", {})
     kept = [c for c in net.get("classes", []) if c.get("name") not in ("Default", *DOMAINS)]
     default = next((c for c in net.get("classes", []) if c.get("name") == "Default"), None)
@@ -379,6 +381,7 @@ def main() -> None:
     lib = [f"(kicad_symbol_lib (version 20241209) (generator \"netscope_gen_kicad\") "
            f"(generator_version {q(GEN_VERSION)})"]
     lib += [lib_symbol(d, r, False) for title, refs in d.sheets.items() if title not in CAPTURED for r in refs]
+    lib += [dump(["symbol", q(k.split(":")[1])] + v[2:]) for k, v in sorted(CUSTOM.items())]   # data-sheet-drawn real parts
     (OUT / f"{LIB}.kicad_sym").write_text("\n".join(lib) + "\n)\n")
     (OUT / "sym-lib-table").write_text(
         f"(sym_lib_table\n  (version 7)\n  (lib (name {q(LIB)})(type \"KiCad\")"

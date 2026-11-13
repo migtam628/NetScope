@@ -6,14 +6,14 @@ Three KiCad 9 projects, at three different levels of completeness. Read the stat
 |---|---|---|
 | `netscope-x1-lower/` | Lower board: keys, status LEDs, buzzer, USB-C | **Real capture, routed, rule-checked.** Gerbers exported. Not fabricated |
 | `../remote-terminator/kicad/rt-1/` | RT-1 remote terminator | **Real capture, routed, rule-checked.** Gerbers exported. Not fabricated |
-| `netscope-x1/` | Main board | **One of seven sheets captured for real** (coprocessor and the cables to the lower board). The other six are block level. Board file: outline, placement guides, footprints of the captured sheet. Not routed |
+| `netscope-x1/` | Main board | **Two of seven sheets captured for real** (coprocessor with the cables to the lower board; power). The other five are block level. Board file: outline, placement guides, footprints of the captured sheets. Not routed |
 
 ## Why the main board is not at the same level yet
 
 A pin-accurate main-board schematic cannot be completed honestly today, for three specific reasons:
 
 1. **The fiber controller's pinout is not public.** Marvell publishes a product brief for the AQC100 and supplies the datasheet under NDA. Without it the fiber sheet cannot be captured. Either the datasheet is obtained through a distributor, or the design changes to a part or module with public documentation.
-2. **Fifteen BOM lines are still "tbd"** (`../bom/bom.csv`), among them the PoE magnetics. A part that has not been chosen has no pins to draw.
+2. **Fourteen BOM lines are still "tbd"** (`../bom/bom.csv`), among them the PoE magnetics. A part that has not been chosen has no pins to draw.
 3. **The bench kit has not been run** (`docs/15-dev-kit-spike.md`). It decides whether the test-port MAC/PHY pair and the fiber controller work at all on this platform.
 
 Everything not blocked by those three can be captured now, sheet by sheet: coprocessor, power, wiremap front end, Port A relays and jack, the PoE measurement island and the board-to-board connectors.
@@ -90,7 +90,26 @@ Open points on this sheet:
 - **Boot entry for firmware updates from the SoM** depends on the MCU's option bits, and the behaviour of the two UCPD dead-battery pins used as outputs has not been checked against the reference manual.
 - The 17 nets that leave this sheet for sheets not yet captured are listed by the checker as open interfaces.
 
-**Block level: the other six sheets.**
+**Captured for real: sheet 07, power** (`tools/main_sheets.py`). BQ25895 charger and power path, MAX17055 fuel gauge with a 5 mOhm sense resistor, TPS61088 5.1 V boost, TPS62840 always-on 3.3 V, TLV62569 3.3 V. 49 parts.
+
+Where the pins come from: the charger and the TLV62569 use KiCad's library symbols. The boost converter, the always-on buck and the fuel gauge have no library symbol, so their symbols are plain boxes whose pin numbers were taken from the manufacturers' data sheets (TI SLVSCM8, TI SLVSEC6, the MAX17055 data sheet) as extracted text. **Those three pin tables must be compared with the PDFs by eye before a board is ordered.**
+
+This sheet is not buildable yet. The checker lists what is open and fails if that list changes without the schematic changing with it:
+
+- **R68 and C76, the boost converter's loop compensation, have no values.** The data sheet's worked example is for 9 V out, and the procedure has to be run for 5.1 V.
+- **U51 (fuel gauge) has no footprint**: KiCad's library has none for its 2 x 2.5 mm 10-pin TDFN.
+- **BT1 (battery connection) has no footprint**: connector or solder pads are decided with the pack supplier.
+
+Other values are data-sheet starting points, not a verified design: the boost frequency resistor (my reading of the data sheet equation, about 600 kHz), the charger's thermistor divider (data sheet values for a 103AT part; the pack's NTC is not known), inductors (candidates by rating and footprint, not confirmed in stock).
+
+Design decisions made on this sheet, each a change from the block netlist or a risk:
+
+- **The sense resistor is 5 mOhm, not the gauge data sheet's 10.** The boost can pull more than 7 A from the pack and 10 mOhm only measures to 5.1 A.
+- **The fuel gauge has its own board thermistor.** The pack's NTC goes to the charger only; two bias networks cannot share one thermistor.
+- **The charger's D+/D- pins sit directly on the USB data pair, in parallel with the SoM**, without the analogue switch TI's DSEL pin is meant to drive. It may disturb USB data or charger detection; this needs a bench test.
+- Battery negative reaches ground only through the sense resistor, so the pack's negative lead must not touch chassis or any other ground.
+
+**Block level: the other five sheets.**
 
 On those sheets the project is a block diagram in KiCad form, not schematic capture. It puts the checked block netlist into KiCad so that capture can go sheet by sheet in a project that already has the reference designators, net names, electrical domains and isolation rules in place. Nothing in the main-board project can be sent to a fabricator.
 

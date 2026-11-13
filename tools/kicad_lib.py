@@ -96,6 +96,36 @@ def load_symbol(lib: str, name: str) -> list:
     return ["symbol", q(f"{lib}:{name}")] + sym[2:]
 
 
+CUSTOM: dict[str, list] = {}        # "lib:name" -> symbol node, for parts KiCad's library does not have
+
+
+def box_symbol(lib_id: str, pin_list, description: str = "") -> list:
+    """A plain box symbol with REAL pin numbers, for a part with no library symbol.
+    pin_list: [(number, name, electrical type, "L" or "R")].  Registered so Sheet.symbol can use it."""
+    name = lib_id.split(":")[1]
+    left = [p for p in pin_list if p[3] == "L"]
+    right = [p for p in pin_list if p[3] == "R"]
+    chars = max([len(p[1]) for p in left] + [0]) + max([len(p[1]) for p in right] + [0])
+    w = max(20.32, math.ceil((chars * 1.1 + 8) / 5.08) * 5.08)
+    h = (max(len(left), len(right)) + 1) * 2.54
+    font = "(effects (font (size 1.27 1.27)))"
+    hide = "(effects (font (size 1.27 1.27)) (hide yes))"
+    text = (f"(symbol {q(lib_id)} (pin_names (offset 1.016)) (exclude_from_sim no) (in_bom yes) (on_board yes) "
+            f"(property \"Reference\" \"U\" (at 0 {h / 2 + 3.81} 0) {font}) "
+            f"(property \"Value\" {q(name)} (at 0 {h / 2 + 1.27} 0) {font}) "
+            f"(property \"Footprint\" \"\" (at 0 0 0) {hide}) (property \"Datasheet\" \"\" (at 0 0 0) {hide}) "
+            f"(property \"Description\" {q(description)} (at 0 0 0) {hide}) "
+            f"(symbol {q(name + '_0_1')} (rectangle (start {-w / 2} {h / 2}) (end {w / 2} {-h / 2}) "
+            f"(stroke (width 0.254) (type default)) (fill (type background)))) (symbol {q(name + '_1_1')}")
+    for group, x, ang in ((left, -w / 2 - 2.54, 0), (right, w / 2 + 2.54, 180)):
+        for i, (num, pname, etype, _) in enumerate(group):
+            text += (f" (pin {etype} line (at {x} {round(h / 2 - 2.54 * (i + 1), 4)} {ang}) (length 2.54) "
+                     f"(name {q(pname)} {font}) (number {q(num)} {font}))")
+    text += ") (embedded_fonts no))"
+    CUSTOM[lib_id] = parse(text)
+    return CUSTOM[lib_id]
+
+
 def pins(symbol: list) -> dict[str, tuple[float, float]]:
     """Pin number to connection point, in symbol coordinates (Y up)."""
     out = {}
@@ -150,7 +180,7 @@ class Sheet:
                fields: dict[str, str] | None = None, dnp: bool = False, ref_at=None, value_at=None):
         lib, name = lib_id.split(":")
         if lib_id not in self.lib:
-            self.lib[lib_id] = load_symbol(lib, name)
+            self.lib[lib_id] = CUSTOM[lib_id] if lib_id in CUSTOM else load_symbol(lib, name)
         sym = self.lib[lib_id]
         x, y = at
         font = "(effects (font (size 1.27 1.27)))"

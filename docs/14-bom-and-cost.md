@@ -20,8 +20,8 @@ Prototype run of 5 boards: about $3,721 in parts and services, plus a second spi
 ## Part-number confidence
 
 - **known** (18): an orderable part number I am confident exists. Suffix, package and stock still need checking.
-- **candidate** (15): believed suitable; confirm against the datasheet.
-- **tbd** (15): only the requirement is fixed. Selecting these is Phase 2/3 work.
+- **candidate** (16): believed suitable; confirm against the datasheet.
+- **tbd** (14): only the requirement is fixed. Selecting these is Phase 2/3 work.
 
 ## Lines
 
@@ -63,7 +63,7 @@ Prototype run of 5 boards: about $3,721 in parts and services, plus a second spi
 | U51 | 1 | 1-cell fuel gauge, ModelGauge m5, no characterisation needed | Analog Devices MAX17055ETB+T | known | 3.80 | 2.90 | 2.40 | [DigiKey](https://www.digikey.com/en/products/result?keywords=MAX17055ETB%2BT) [Mouser](https://www.mouser.com/c/?q=MAX17055ETB%2BT) | TI BQ27441 (needs chemistry config) | Active part |
 | BT1 | 1 | Li-ion pack 1S3P 21700, ~15 Ah / 54 Wh, PCM + 10 k NTC, UN38.3 tested | custom pack house  | tbd | 38.00 | 30.00 | 24.00 |  | 1S2P 10 Ah (shorter runtime, see docs/06) | Custom pack: 6-10 week lead time; needs UN38.3 report for shipping |
 | U52 | 1 | 10 A synchronous boost, VBAT to 5.1 V | Texas Instruments TPS61088RHLR | known | 3.60 | 2.70 | 2.20 | [DigiKey](https://www.digikey.com/en/products/result?keywords=TPS61088RHLR) [Mouser](https://www.mouser.com/c/?q=TPS61088RHLR) | TPS61089; MPS MP3423 | Active part |
-| L1 | 1 | Power inductor 1.2-2.2 uH, Isat >= 12 A | TBD  | tbd | 1.50 | 1.00 | 0.80 |  | Coilcraft XAL / Wurth WE-LHMI class | Commodity |
+| L1 | 1 | Power inductor 1.5 uH, Isat >= 12 A, 7 x 7 mm | Coilcraft XAL7030-152 (suffix to confirm) | candidate | 1.50 | 1.00 | 0.80 | [DigiKey](https://www.digikey.com/en/products/result?keywords=XAL7030-152+%28suffix+to+confirm%29) [Mouser](https://www.mouser.com/c/?q=XAL7030-152+%28suffix+to+confirm%29) | Coilcraft XAL / Wurth WE-LHMI class | Commodity |
 | U53 | 1 | 60 nA IQ buck, 3.3 V always-on | Texas Instruments TPS62840DLCR | known | 1.90 | 1.40 | 1.10 | [DigiKey](https://www.digikey.com/en/products/result?keywords=TPS62840DLCR) [Mouser](https://www.mouser.com/c/?q=TPS62840DLCR) | TPS62A01 (higher IQ) | Active part |
 | U54 | 1 | 2 A buck, 5 V to 3.3 V | Texas Instruments TLV62569DBVR | known | 0.70 | 0.45 | 0.30 | [DigiKey](https://www.digikey.com/en/products/result?keywords=TLV62569DBVR) [Mouser](https://www.mouser.com/c/?q=TLV62569DBVR) | many pin-compatible SOT-23 bucks | Multi-source |
 | U55 | 1 | Split-rail DC/DC, 5 V to +/-15 V | Texas Instruments TPS65131RGER | candidate | 4.20 | 3.20 | 2.60 | [DigiKey](https://www.digikey.com/en/products/result?keywords=TPS65131RGER) [Mouser](https://www.mouser.com/c/?q=TPS65131RGER) | Charge-pump doubler/inverter pair | Active part |

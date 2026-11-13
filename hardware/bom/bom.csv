@@ -35,7 +35,7 @@ charger,U50,1,"1-cell 5 A I2C buck charger with power path and ADC",Texas Instru
 gauge,U51,1,"1-cell fuel gauge, ModelGauge m5, no characterisation needed",Analog Devices,MAX17055ETB+T,known,3.8,3.8,2.9,2.4,"TI BQ27441 (needs chemistry config)","Active part",yes
 battery,BT1,1,"Li-ion pack 1S3P 21700, ~15 Ah / 54 Wh, PCM + 10 k NTC, UN38.3 tested",custom pack house,TBD,tbd,38,36,30,24,"1S2P 10 Ah (shorter runtime, see docs/06)","Custom pack: 6-10 week lead time; needs UN38.3 report for shipping",yes
 boost,U52,1,"10 A synchronous boost, VBAT to 5.1 V",Texas Instruments,TPS61088RHLR,known,3.6,3.6,2.7,2.2,"TPS61089; MPS MP3423","Active part",yes
-boost_l,L1,1,"Power inductor 1.2-2.2 uH, Isat >= 12 A",TBD,TBD,tbd,1.5,1.5,1.0,0.8,"Coilcraft XAL / Wurth WE-LHMI class","Commodity",no
+boost_l,L1,1,"Power inductor 1.5 uH, Isat >= 12 A, 7 x 7 mm",Coilcraft,XAL7030-152 (suffix to confirm),candidate,1.5,1.5,1.0,0.8,"Coilcraft XAL / Wurth WE-LHMI class","Commodity",no
 buck_aon,U53,1,"60 nA IQ buck, 3.3 V always-on",Texas Instruments,TPS62840DLCR,known,1.9,1.9,1.4,1.1,"TPS62A01 (higher IQ)","Active part",yes
 buck_3v3,U54,1,"2 A buck, 5 V to 3.3 V",Texas Instruments,TLV62569DBVR,known,0.7,0.7,0.45,0.3,"many pin-compatible SOT-23 bucks","Multi-source",yes
 bipolar,U55,1,"Split-rail DC/DC, 5 V to +/-15 V",Texas Instruments,TPS65131RGER,candidate,4.2,4.2,3.2,2.6,"Charge-pump doubler/inverter pair","Active part",yes

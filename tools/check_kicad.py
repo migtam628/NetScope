@@ -41,7 +41,8 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 from kicad_lib import children as kids, load_symbol, unq  # noqa: E402
-from main_sheets import CAPTURED, EXTRA_OK, HELD_OFF, MCU, REFINES, U40_PINS, cable_table  # noqa: E402
+from main_sheets import (CAPTURED, EXTRA_OK, HELD_OFF, MCU, NO_FOOTPRINT, OPEN_VALUES, REFINES, U40_PINS,  # noqa: E402
+                         cable_table)
 from gen_lower import J50 as LOWER_J50, J51 as LOWER_J51  # noqa: E402
 
 NETLIST = ROOT / "hardware/netlist/netscope-x1.yaml"
@@ -90,6 +91,13 @@ def find(node, key):
 def attr(node, key):
     hit = find(node, key)
     return hit[0][1] if hit and len(hit[0]) > 1 else ""
+
+
+def footprints_and_values(sch: Path, out: Path):
+    """{ref: (footprint, value)} for every part in the schematic."""
+    cli("sch", "export", "netlist", "--format", "kicadsexpr", "-o", str(out), str(sch))
+    tree = parse_sexpr(out.read_text())
+    return {attr(c, "ref"): (attr(c, "footprint"), attr(c, "value")) for c in find(find(tree, "components")[0], "comp")}
 
 
 def export_netlist(sch: Path, out: Path):
@@ -213,6 +221,16 @@ def main() -> int:
             got = net_of.get((ref, str(i)), "")
             if (want is None and not got.startswith("unconnected-")) or (want is not None and got != want):
                 problems.append(f"{ref} pin {i}: {got or 'nothing'} on the main board, {want} expected from the lower board")
+    # every real part has a footprint and a value, except the ones openly listed as undecided
+    fv = footprints_and_values(root, tmp / "fv.net")
+    no_fp = {r for r in real if not fv[r][0]}
+    tbd = {r for r in real if fv[r][1].strip().upper() == "TBD"}
+    for r in sorted(no_fp ^ set(NO_FOOTPRINT)):
+        problems.append(f"{r}: footprint missing in the schematic and NO_FOOTPRINT in tools/main_sheets.py disagree")
+    for r in sorted(tbd ^ set(OPEN_VALUES)):
+        problems.append(f"{r}: value TBD in the schematic and OPEN_VALUES in tools/main_sheets.py disagree")
+    print(f"open items on captured sheets: {len(no_fp)} parts without a footprint ({', '.join(sorted(no_fp))}), "
+          f"{len(tbd)} values not chosen ({', '.join(sorted(tbd))})")
     checked = sum(1 for v in U40_PINS.values() if v[1])
     print(f"captured sheets: {len(real)} parts, {len(real_nets)} nets; refinement of the block netlist, {checked} pin "
           f"functions, {len(HELD_OFF)} hold-off resistors and both cable pin tables checked")
@@ -250,20 +268,24 @@ def main() -> int:
         if "rror" in r.stderr:
             problems.append(f"DRC reported: {r.stderr.strip()}")
         drc = json.loads(drc_out.read_text())
-        accepted = 0
+        accepted = cosmetic = 0
         for v in drc.get("violations", []):
             items = "; ".join(i["description"] for i in v["items"])
             # the cable connectors' open actuators overhang the bottom edge by design
             if v["type"] == "silk_edge_clearance" and ("of J50 " in items or "of J51 " in items):
                 accepted += 1
                 continue
+            if v["type"].startswith("silk_") and v["severity"] == "warning":
+                cosmetic += 1                              # placement is not final on an unrouted board
+                continue
             problems.append(f"DRC {v['severity']}: {v['description']} [{items}]")
         open_links = len(drc.get("unconnected_items", []))
         board_tree = parse_sexpr(pcb.read_text())
         if find(board_tree, "segment") or find(board_tree, "via"):
             problems.append("the main board file contains tracks; this checker assumes it is still unrouted")
-        print(f"DRC: {len(drc.get('violations', [])) - accepted} violations ({accepted} accepted: cable connectors overhang "
-              f"the edge); board is NOT ROUTED: {open_links} connections open, footprints only for captured sheets")
+        print(f"DRC: {len(drc.get('violations', [])) - accepted - cosmetic} violations ({accepted} accepted: cable connectors "
+              f"overhang the edge; {cosmetic} silkscreen warnings left for layout); board is NOT ROUTED: {open_links} "
+              f"connections open, footprints only for captured sheets")
     else:
         print("DRC: no board file, skipped")
 

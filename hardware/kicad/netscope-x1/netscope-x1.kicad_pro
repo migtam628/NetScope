@@ -129,7 +129,7 @@
         "min_silk_clearance": 0.0,
         "min_text_height": 0.8,
         "min_text_thickness": 0.08,
-        "min_through_hole_diameter": 0.3,
+        "min_through_hole_diameter": 0.2,
         "min_track_width": 0.0,
         "min_via_annular_width": 0.1,
         "min_via_diameter": 0.5,
@@ -720,11 +720,95 @@
       },
       {
         "netclass": "SYS",
+        "pattern": "AON_SW"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "AON_VSET"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BAT_NEG"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BOOST_BOOT"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BOOST_COMP"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BOOST_COMP_RC"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BOOST_FB"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BOOST_FSW"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BOOST_ILIM"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BOOST_SS"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BOOST_SW"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BOOST_VCC"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BUCK_FB"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "BUCK_SW"
+      },
+      {
+        "netclass": "SYS",
         "pattern": "CC1_SENSE"
       },
       {
         "netclass": "SYS",
         "pattern": "CC2_SENSE"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "CHG_BTST"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "CHG_ILIM"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "CHG_PMID"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "CHG_QON"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "CHG_REGN"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "CHG_STAT"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "CHG_SW"
       },
       {
         "netclass": "SYS",
@@ -745,6 +829,18 @@
       {
         "netclass": "SYS",
         "pattern": "COPROC_UART_TX_R"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "FG_AIN"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "FG_REG"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "FG_THRM"
       },
       {
         "netclass": "SYS",
