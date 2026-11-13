@@ -14,7 +14,7 @@ wiremap_prot,PROT1,1,"8x (PTC resettable fuse + 2.2 k pulse resistor + bidirecti
 mux,U30 U31,2,"8:1 analog mux, +/-15 V, latch-up immune",Analog Devices,ADG5408BRUZ,known,9.5,9.5,7.5,6.2,"ADG1408 (not latch-up immune); TI MUX508","Active part",yes
 afe_opamp,U32,1,"Precision dual op-amp, RRIO, 36 V",Texas Instruments,OPA2192IDR,candidate,3.5,3.5,2.6,2.1,"ADA4522-2; OPA2189","Active part",yes
 xtalk_afe,U33,1,"Tone driver + log/peak detector for pair-to-pair coupling (design not finalised)",TBD,TBD,tbd,4.0,4.0,3.0,2.2,"n/a","EXPERIMENTAL block - see docs/03",yes
-mcu,U40,1,"Cortex-M0+ MCU, 128 kB flash, LQFP-48",STMicroelectronics,STM32G0B1CBT6,known,5.5,5.5,4.2,3.5,"STM32G0B1CCT6 (256 kB); STM32G071CBT6 (no second I2C/USART margin)","Active, 10-year longevity program",yes
+mcu,U40,1,"Cortex-M0+ MCU, 128 kB flash, UFQFPN-48 (0.6 mm high: the LQFP is too tall for the front side)",STMicroelectronics,STM32G0B1CBU6,candidate,5.5,5.5,4.2,3.5,"STM32G0B1CCU6 (256 kB)","Active, 10-year longevity program",yes
 keys,SW1,9,"Tactile switch 6 mm, 2.6 N, under silicone keypad",C&K,PTS645 series,candidate,0.35,0.35,0.22,0.15,"Alps SKHH; E-Switch TL3301","Commodity",yes
 leds,LED1,4,"Status LED 0603 (2x green, 1x amber, 1x red/green)",various,TBD,tbd,0.3,0.3,0.15,0.08,"n/a","Commodity",yes
 buzzer,BZ1,1,"SMD piezo transducer, ~4 kHz, >= 80 dB at 10 cm",TBD,TBD,tbd,1.2,1.2,0.9,0.7,"CUI / PUI / Murata SMD piezo","Commodity",yes
@@ -43,7 +43,7 @@ sd_reader,U60,1,"USB 2.0 SD card reader controller (DNP option)",Microchip,USB22
 sd_socket,J30,1,"microSD push-push socket (DNP option)",TBD,TBD,tbd,1.2,1.2,0.8,0.6,"Molex / Hirose DM3","Option",yes
 mac_10g,U70,1,"10G Ethernet MAC, PCIe x1 to SFP+ (XFI), FCBGA 7 x 11 mm",Marvell (Aquantia),AQC100-B1-C,candidate,25,25,25,25,"Realtek RTL8127ATF (fiber-only 10G, single-lane PCIe, about 1 W; retail cards exist). Not sold by DigiKey/Mouser; Linux driver support for the fiber variant NOT confirmed","SUPPLY RISK. DigiKey on 2026-11-11: $25.00 each, sold only in trays of 210, none in stock, backorders not accepted (constrained supply). Prototype quantities would have to come from a broker or from Marvell directly. 1 Gb module support is indicated by the maker's adapter brief but not proven at chip level.",yes
 sfp_cage,J32,1,"SFP+ cage, 1x1, press-fit, with 20-pin host connector and EMI springs",TBD,TBD,tbd,4.5,4.5,3.2,2.4,"TE / Molex / Amphenol 1x1 SFP+ cage and connector","Commodity. Replaces the M.2 option, which used the same PCIe lane.",yes
-debug,J40,1,"Tag-Connect footprint + 2x5 1.27 mm header (proto only)",various,TBD,tbd,0.8,0.8,0.3,0.1,"n/a","Proto only",yes
+debug,J40 J41,2,"Tag-Connect TC2030 pads (SWD) and test pads (SoM console, boot): no fitted part",various,TBD,tbd,0.8,0.8,0.3,0.1,"n/a","Proto only",yes
 passives,-,1,"Resistors, capacitors, ferrites, small inductors (~260 placements)",various,-,tbd,14,12,7,4.5,"n/a","Commodity",no
 pcb,-,1,"Main board: 6-layer 1.6 mm FR-4 TG170, ENIG, controlled impedance, 88 x 88 mm + tab",fab house,-,tbd,40,26,10,5.5,"n/a","Standard stackup at any controlled-impedance fab",no
 pcb_lower,-,1,"Keypad and USB-C board: 2-layer 1.6 mm FR-4, ENIG, 88 x 56 mm",fab house,-,tbd,12,6,2.2,1.2,"n/a","Commodity",no

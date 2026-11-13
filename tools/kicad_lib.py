@@ -137,6 +137,9 @@ class Sheet:
         self.lib: dict[str, list] = {}
         self.items: list[str] = []
         self.comments: list[str] = []
+        self.instance_path = "/" + self.uuid             # set to "/<root>/<sheet symbol>" for a sub-sheet
+        self.is_root = True
+        self.global_labels = False                       # sub-sheets use global labels so nets cross sheets by name
         self.netmap: dict[str, dict[str, str]] = {}      # ref -> pin -> net, as given to part()
         self.rev = "A"
 
@@ -168,7 +171,7 @@ class Sheet:
             o.append(f"(property {q(key)} {q(val)} (at {x} {y} 0) {hidden})")
         for num in pins(sym):
             o.append(f"(pin {q(num)} (uuid {q(self.uid('pin', ref, num))}))")
-        o.append(f"(instances (project {q(self.project)} (path {q('/' + self.uuid)} (reference {q(ref)}) (unit 1)))))")
+        o.append(f"(instances (project {q(self.project)} (path {q(self.instance_path)} (reference {q(ref)}) (unit 1)))))")
         self.items.append("\n".join(o))
         return {num: pin_on_sheet(at, rotation, p) for num, p in pins(sym).items()}
 
@@ -183,6 +186,14 @@ class Sheet:
                           f"(justify {just})) (uuid {q(self.uid('label', name, at))}))")
 
     def label_at(self, name: str, at, angle: int):
+        if self.global_labels:
+            just = "right" if angle in (180, 270) else "left"
+            self.items.append(
+                f"(global_label {q(name)} (shape passive) (at {at[0]} {at[1]} {angle}) (fields_autoplaced yes) "
+                f"(effects (font (size 1.27 1.27)) (justify {just})) (uuid {q(self.uid('label', name, at))}) "
+                f"(property \"Intersheetrefs\" \"${{INTERSHEET_REFS}}\" (at 0 0 0) "
+                f"(effects (font (size 1.27 1.27)) (hide yes))))")
+            return
         just = "right bottom" if angle in (180, 270) else "left bottom"
         self.items.append(f"(label {q(name)} (at {at[0]} {at[1]} {angle}) (effects (font (size 1.27 1.27)) "
                           f"(justify {just})) (uuid {q(self.uid('label', name, at))}))")
@@ -231,6 +242,7 @@ class Sheet:
         o += [dump(s) for s in self.lib.values()]
         o.append(")")
         o += self.items
-        o.append("(sheet_instances (path \"/\" (page \"1\")))")
+        if self.is_root:
+            o.append("(sheet_instances (path \"/\" (page \"1\")))")
         o.append("(embedded_fonts no))")
         return "\n".join(o) + "\n"

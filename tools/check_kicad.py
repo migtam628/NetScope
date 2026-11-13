@@ -4,14 +4,19 @@
     python tools/check_kicad.py [--pdf OUT.pdf]
 
 1. Electrical rule check on the whole hierarchy; any violation fails.
-2. KiCad's exported netlist is compared with hardware/netlist/netscope-x1.yaml:
-   same parts with the same values, same nets, same pins on every net.
+2. Block sheets: KiCad's exported netlist is compared with
+   hardware/netlist/netscope-x1.yaml: same parts, values, nets and pins.
+   Captured sheets (tools/main_sheets.py): every part's pin-level nets must
+   still implement the block nets listed for it; MCU pin functions must exist
+   in the library symbol's alternate-function list; power and relay controls
+   need hold-off resistors; the cable pin tables must match the lower board.
 3. Net classes: each sheet is loaded on its own and every net must carry the
    class of its domain (kicad-cli reports "Default" for nets on sub-sheets
    when it exports a hierarchy, so the hierarchy export cannot show this).
-4. If the board file exists: design rule check of the outline and holes.
-   Footprint/schematic parity is NOT checked: the block symbols have no
-   footprints yet.
+4. If the board file exists: design rule check of the outline, holes and the
+   footprints of captured sheets.  The board is not routed, so open
+   connections are counted, not failed.  Footprint/schematic parity is NOT
+   checked: block symbols have no footprints yet.
 5. Isolation rule probe (needs KiCad's `pcbnew` module under /usr/bin/python3):
    a scratch board with one track pair per domain pair 1 mm apart, plus two
    same-domain tracks 0.4 mm apart.  Each cross-domain pair must be flagged
@@ -34,6 +39,11 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools"))
+from kicad_lib import children as kids, load_symbol, unq  # noqa: E402
+from main_sheets import CAPTURED, EXTRA_OK, HELD_OFF, MCU, REFINES, U40_PINS, cable_table  # noqa: E402
+from gen_lower import J50 as LOWER_J50, J51 as LOWER_J51  # noqa: E402
+
 NETLIST = ROOT / "hardware/netlist/netscope-x1.yaml"
 PRJ = ROOT / "hardware/kicad/netscope-x1"
 NAME = "netscope-x1"
@@ -91,7 +101,8 @@ def export_netlist(sch: Path, out: Path):
     nets = {}
     for net in find(find(tree, "nets")[0], "net"):
         nets[attr(net, "name")] = (attr(net, "class"),
-                                   {f"{attr(n, 'ref')}.{attr(n, 'pinfunction')}" for n in find(net, "node")})
+                                   {f"{attr(n, 'ref')}.{attr(n, 'pinfunction')}" for n in find(net, "node")},
+                                   {(attr(n, "ref"), attr(n, "pin")) for n in find(net, "node")})
     return comps, nets
 
 
@@ -112,15 +123,35 @@ def main() -> int:
         raise SystemExit(f"ERC did not run:\n{r.stdout}{r.stderr}")
     erc = json.loads(erc_out.read_text())
     violations = [(s["path"], v) for s in erc["sheets"] for v in s["violations"]]
+    # A sheet captured for real talks to block sheets through nets that only exist at pin level on one
+    # side and as a bundle on the other.  Until both sides are captured, such a label has no partner:
+    # those, and only those, are accepted and listed as open interfaces.
+    real_refs_yaml = {r for t in CAPTURED for r in design["sheets"][t]}
+    explainable = set(REFINES) | {n["name"] for n in design["nets"]
+                                  if any(node.split(".")[0] in real_refs_yaml for node in n["nodes"])}
+    open_ends = set()
     for path, v in violations:
         items = "; ".join(i["description"] for i in v["items"])
-        problems.append(f"ERC {v['severity']} on {path}: {v['description']} [{items}]")
-    print(f"ERC: {len(erc['sheets'])} sheets, {len(violations)} violations")
+        label = items.split("'")[1] if v["type"] == "global_label_dangling" and "'" in items else None
+        if label in explainable:
+            open_ends.add(label)
+        else:
+            problems.append(f"ERC {v['severity']} on {path}: {v['description']} [{items}]")
+    print(f"ERC: {len(erc['sheets'])} sheets, {len(violations) - len(open_ends)} violations; "
+          f"{len(open_ends)} nets end at a sheet that is not captured yet")
 
     # 2. netlist comparison
     comps, nets = export_netlist(root, tmp / "root.net")
-    want_comps = {ref: c["part"] for ref, c in design["components"].items()}
-    want_nets = {n["name"]: set(n["nodes"]) for n in design["nets"]}
+    block_refs = {r for t, refs in design["sheets"].items() if t not in CAPTURED for r in refs}
+    want_comps = {ref: c["part"] for ref, c in design["components"].items() if ref in block_refs}
+    want_nets = {n["name"]: {x for x in n["nodes"] if x.split(".")[0] in block_refs} for n in design["nets"]}
+    want_nets = {k: v for k, v in want_nets.items() if v}
+    real = {ref: value for ref, value in comps.items() if ref not in block_refs}
+    real_nets = {name: {(r, p) for r, p in v[2] if r in real} for name, v in nets.items()}
+    real_nets = {k: v for k, v in real_nets.items() if v}
+    comps = {ref: value for ref, value in comps.items() if ref in block_refs}
+    nets = {name: (v[0], {x for x in v[1] if x.split(".")[0] in block_refs}) for name, v in nets.items()}
+    nets = {k: v for k, v in nets.items() if v[1]}
     for ref in sorted(set(want_comps) - set(comps)):
         problems.append(f"part {ref} is in the YAML netlist but not in KiCad")
     for ref in sorted(set(comps) - set(want_comps)):
@@ -137,11 +168,59 @@ def main() -> int:
         if got != want:
             problems.append(f"net {name}: only in KiCad {sorted(got - want)}, only in YAML {sorted(want - got)}")
     nodes = sum(len(v[1]) for v in nets.values())
-    print(f"netlist: {len(comps)} parts, {len(nets)} nets, {nodes} pins in KiCad; "
+    print(f"block sheets: {len(comps)} parts, {len(nets)} nets, {nodes} pins in KiCad; "
           f"{len(want_comps)} parts, {len(want_nets)} nets, {sum(map(len, want_nets.values()))} pins in YAML")
+
+    # 2b. captured sheets: do the pin-level nets still implement the block netlist?
+    net_of = {node: name for name, nodes_ in real_nets.items() for node in nodes_}
+    for name in sorted(real_nets):
+        if name not in REFINES and not name.startswith(("unconnected-", "Net-(")) and name not in want_nets \
+                and name not in {n["name"] for n in design["nets"]}:
+            problems.append(f"pin-level net {name} has no entry in REFINES (tools/main_sheets.py)")
+    block_of = {}
+    for n in design["nets"]:
+        for node in n["nodes"]:
+            block_of.setdefault(node.split(".")[0], set()).add(n["name"])
+    for ref in sorted(real):
+        if ref not in design["components"]:
+            continue                                   # support parts and connectors that the block netlist does not list
+        got = set()
+        for (r, _pin), name in net_of.items():
+            if r == ref:
+                got |= set(REFINES.get(name, (name,) if name in {n["name"] for n in design["nets"]} else ()))
+        need = block_of.get(ref, set())
+        for missing in sorted(need - got):
+            problems.append(f"{ref}: block net {missing} is not implemented on the captured sheet")
+        for extra in sorted(got - need - set(EXTRA_OK.get(ref, {}))):
+            problems.append(f"{ref}: captured sheet connects it to {extra}, which the block netlist does not")
+    # pin functions against the library symbol's alternate-function list
+    sym = load_symbol(*MCU.split(":"))
+    alts = {}
+    for unit in kids(sym, "symbol"):
+        for pin in kids(unit, "pin"):
+            alts.setdefault(unq(kids(pin, "name")[0][1]), set()).update(unq(a[1]) for a in kids(pin, "alternate"))
+    for pin, (net, function) in U40_PINS.items():
+        if function and function not in alts.get(pin, set()):
+            problems.append(f"U40 {pin}: {function} (for {net}) is not a function of that pin in the library symbol")
+    # hold-off resistors, and the two cable pin tables
+    value_of = real
+    for net in HELD_OFF:
+        rs = [r for r, _ in real_nets.get(net, ()) if r.startswith("R")]
+        if not any(net_of.get((r, p)) == "GND" for r in rs for p in ("1", "2")) or any(value_of[r] != "100k" for r in rs):
+            problems.append(f"{net}: no 100k hold-off resistor to ground")
+    for ref, lower in (("J50", LOWER_J50), ("J51", LOWER_J51)):
+        for i, want in enumerate(cable_table(lower), 1):
+            got = net_of.get((ref, str(i)), "")
+            if (want is None and not got.startswith("unconnected-")) or (want is not None and got != want):
+                problems.append(f"{ref} pin {i}: {got or 'nothing'} on the main board, {want} expected from the lower board")
+    checked = sum(1 for v in U40_PINS.values() if v[1])
+    print(f"captured sheets: {len(real)} parts, {len(real_nets)} nets; refinement of the block netlist, {checked} pin "
+          f"functions, {len(HELD_OFF)} hold-off resistors and both cable pin tables checked")
 
     # 3. net classes, one sheet at a time
     domain = {n["name"]: n["domain"] for n in design["nets"]}
+    for real_net, block in REFINES.items():
+        domain.setdefault(real_net, domain[block[0]] if block else "SYS")
     checked = 0
     for sheet in sorted(PRJ.glob("*.kicad_sch")):
         if sheet == root:
@@ -153,7 +232,9 @@ def main() -> int:
         shutil.copy(PRJ / f"{NAME}.kicad_sym", flat)
         shutil.copy(PRJ / "sym-lib-table", flat)
         _, flat_nets = export_netlist(flat / "flat.kicad_sch", flat / "flat.net")
-        for name, (cls, _) in flat_nets.items():
+        for name, (cls, *_rest) in flat_nets.items():
+            if name.startswith(("unconnected-", "Net-(")):
+                continue
             checked += 1
             if cls != domain.get(name):
                 problems.append(f"net {name} on {sheet.name}: class {cls!r}, domain {domain.get(name)!r}")
@@ -169,10 +250,20 @@ def main() -> int:
         if "rror" in r.stderr:
             problems.append(f"DRC reported: {r.stderr.strip()}")
         drc = json.loads(drc_out.read_text())
-        found = drc.get("violations", []) + drc.get("unconnected_items", [])
-        for v in found:
-            problems.append(f"DRC {v['severity']}: {v['description']}")
-        print(f"DRC: {len(found)} violations (outline and mounting holes only; no footprints or nets yet)")
+        accepted = 0
+        for v in drc.get("violations", []):
+            items = "; ".join(i["description"] for i in v["items"])
+            # the cable connectors' open actuators overhang the bottom edge by design
+            if v["type"] == "silk_edge_clearance" and ("of J50 " in items or "of J51 " in items):
+                accepted += 1
+                continue
+            problems.append(f"DRC {v['severity']}: {v['description']} [{items}]")
+        open_links = len(drc.get("unconnected_items", []))
+        board_tree = parse_sexpr(pcb.read_text())
+        if find(board_tree, "segment") or find(board_tree, "via"):
+            problems.append("the main board file contains tracks; this checker assumes it is still unrouted")
+        print(f"DRC: {len(drc.get('violations', [])) - accepted} violations ({accepted} accepted: cable connectors overhang "
+              f"the edge); board is NOT ROUTED: {open_links} connections open, footprints only for captured sheets")
     else:
         print("DRC: no board file, skipped")
 

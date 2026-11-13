@@ -588,6 +588,10 @@
       },
       {
         "netclass": "SYS",
+        "pattern": "COPROC_NRST_DBG"
+      },
+      {
+        "netclass": "SYS",
         "pattern": "SOM_UART_DBG"
       },
       {
@@ -713,6 +717,166 @@
       {
         "netclass": "SYS",
         "pattern": "SFP_PWR_EN"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "CC1_SENSE"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "CC2_SENSE"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "COPROC_BOOT0"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "COPROC_NRST"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "COPROC_UART_RX"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "COPROC_UART_TX"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "COPROC_UART_TX_R"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "KEY_BACK"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "KEY_DOWN"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "KEY_FN"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "KEY_HOME"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "KEY_LEFT"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "KEY_OK"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "KEY_PWR"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "KEY_RIGHT"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "KEY_UP"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LED1"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LED2"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LED3"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LED4"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "POE_I2C_SCL"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "POE_I2C_SDA"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PWR_I2C_SCL"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PWR_I2C_SDA"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SPARE_PB4"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SWCLK"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SWDIO"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USBC_CC1"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USBC_CC2"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USBC_DN"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USBC_DP"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "WM_DRV_A0"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "WM_DRV_A1"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "WM_DRV_A2"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "WM_MUX_EN"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "WM_RANGE0"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "WM_RANGE1"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "WM_RET_A0"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "WM_RET_A1"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "WM_RET_A2"
       }
     ]
   },

@@ -74,7 +74,8 @@ boards:
       - [Y1,   F,   2.0, -22.0,  3.2,  2.5,  0.8, extra]
       - [U70,  F,  18.0, 14.0,   7.0, 11.0,  1.2]
       - [U40,  F,  26.0, -28.0,  7.0,  7.0,  0.6]
-      - [J40,  F,  38.0, -20.0,  8.0,  5.0,  0.0]
+      - [J40,  F,  38.0, -20.0,  7.0,  5.0,  0.0]              # Tag-Connect TC2030-NL pads
+      - [J41,  F,  38.0, -26.5,  7.0,  3.0,  0.0]              # test pads
       - [U60,  F,  -8.0, 33.0,   5.0,  5.0,  0.9]
       - [U21,  F, -40.0, -31.5,  5.0,  5.0,  0.9]
       - [U22,  F, -33.5, -30.5,  4.9,  3.0,  1.1]
@@ -84,9 +85,9 @@ boards:
       - [D21,  F, -30.5, -36.2, 11.0,  4.6,  1.1]
       - [D20,  F, -30.5, -41.2, 11.0,  4.6,  1.1]
       - [D22,  F, -21.0, -36.5,  4.5,  2.7,  1.1]
-      - [J50,  F,  -3.0, -41.0, 18.0,  4.0,  1.0, extra]       # 30-way FFC to the lower board
+      - [J50,  B,  -5.5, -40.9, 21.2,  8.0,  2.0, extra, over]       # FH12-30S; back side: 2.0 mm is too tall for the front       # 30-way FFC to the lower board
       - [J1,   F,  15.0, -41.0, 15.0,  4.0,  1.0]              # display FFC
-      - [J51,  F,  30.5, -41.0, 13.0,  4.0,  1.0, extra]       # 20-way power FFC to the lower board
+      - [J51,  B,  24.5, -40.9, 16.2,  8.0,  2.0, extra, over]       # FH12-20S; in line with the lower board's J51       # 20-way power FFC to the lower board
       - [H1,   F, -40.5, 34.0, 0, 0, 0, hole]
       - [H2,   F,  22.0, 26.0, 0, 0, 0, hole]
       - [H3,   F, -40.0, -40.5, 0, 0, 0, hole]

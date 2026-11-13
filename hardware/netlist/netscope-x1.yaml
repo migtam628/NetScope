@@ -84,7 +84,8 @@ components:
   J30:  {part: "microSD socket (DNP option)",        domain: SYS, bom: sd_socket}
   U70:  {part: "AQC100 10G MAC, PCIe to SFP+",       domain: SYS, bom: mac_10g}
   J32:  {part: "SFP+ cage and 20-pin connector",     domain: SYS, bom: sfp_cage}
-  J40:  {part: "debug: UART + SWD + boot header",    domain: SYS, bom: debug}
+  J40:  {part: "coprocessor SWD, Tag-Connect pads",  domain: SYS, bom: debug}
+  J41:  {part: "SoM console + boot test pads",       domain: SYS, bom: debug}
 
 # Drawing sheets for tools/render_schematic.py (no electrical meaning).
 sheets:
@@ -92,8 +93,8 @@ sheets:
   "Test-port MAC and PHY, uplink port": [U11, U10, D10, J11]
   "Wiremap front end": [U30, U31, U32, U33, U55]
   "PoE measurement island (isolated)": [D20, D21, D22, U21, U22, R20, Q20, U24, U25, U23, U20, PS1]
-  "Processor module, display, fiber port, options, debug": [M1, J1, U70, J32, U60, J30, J40]
-  "Coprocessor, keys, indicators": [U40, SW1, LED1, BZ1]
+  "Processor module, display, fiber port, options, debug": [M1, J1, U70, J32, U60, J30, J41]
+  "Coprocessor, keys, indicators": [U40, J40, SW1, LED1, BZ1]
   "Power: USB-C, charger, battery, rails": [J20, D30, U50, U51, BT1, U52, U53, U54]
 
 nets:
@@ -170,11 +171,12 @@ nets:
   - {name: B_MDI, domain: SYS, nodes: [M1.ETH_MDI, J11.PHY_SIDE]}
   - {name: B_LEDS, domain: SYS, nodes: [M1.ETH_LEDS, J11.LEDS]}
   # --- processor <-> coprocessor ------------------------------------------------------
-  - {name: COPROC_UART, domain: SYS, nodes: [M1.UART, U40.USART1, J40.UART_TAP]}
+  - {name: COPROC_UART, domain: SYS, nodes: [M1.UART, U40.USART2, J41.UART_TAP]}
   - {name: COPROC_BOOT, domain: SYS, nodes: [M1.GPIO_COPROC_BOOT_RST, U40.BOOT0_NRST]}
   - {name: SWD, domain: SYS, nodes: [U40.SWD, J40.SWD]}
-  - {name: SOM_UART_DBG, domain: SYS, nodes: [M1.UART_DEBUG, J40.CONSOLE]}
-  - {name: SOM_NRPIBOOT, domain: SYS, nodes: [M1.NRPIBOOT, J40.RPIBOOT_JUMPER]}
+  - {name: COPROC_NRST_DBG, domain: SYS, nodes: [U40.NRST, J40.NRESET]}
+  - {name: SOM_UART_DBG, domain: SYS, nodes: [M1.UART_DEBUG, J41.CONSOLE]}
+  - {name: SOM_NRPIBOOT, domain: SYS, nodes: [M1.NRPIBOOT, J41.RPIBOOT_JUMPER]}
   - {name: SOM_PWR_EN, domain: SYS, nodes: [U40.SOM_PWR_EN, U52.EN]}
   - {name: SOM_RUN, domain: SYS, nodes: [U40.SOM_RUN, M1.PMIC_EN_RUN]}
   - {name: KEYS, domain: SYS, nodes: [SW1.MATRIX, U40.KEY_GPIO]}
@@ -206,6 +208,6 @@ nets:
   # --- fiber port (Port C): 10G SFP+ ------------------------------------------------
   - {name: SFP_XFI, domain: SYS, nodes: [U70.XFI_TX_RX, J32.TD_RD]}
   - {name: SFP_I2C, domain: SYS, nodes: [M1.I2C_SFP, J32.MOD_DEF_SDA_SCL]}
-  - {name: SFP_STATUS, domain: SYS, nodes: [J32.LOS_PRESENT_TXFAULT, U40.SFP_STATUS_IN, U70.SFP_LOS]}
-  - {name: SFP_TX_DISABLE, domain: SYS, nodes: [U40.SFP_TX_DISABLE, J32.TX_DISABLE]}
+  - {name: SFP_STATUS, domain: SYS, nodes: [J32.LOS_PRESENT_TXFAULT, M1.GPIO_SFP_STATUS, U70.SFP_LOS]}   # to the SoM: Linux's SFP driver wants these
+  - {name: SFP_TX_DISABLE, domain: SYS, nodes: [M1.GPIO_SFP_TX_DISABLE, J32.TX_DISABLE]}
   - {name: SFP_PWR_EN, domain: SYS, nodes: [U40.SFP_PWR_EN, U70.PWR_EN, J32.VCC_SWITCH_EN]}
