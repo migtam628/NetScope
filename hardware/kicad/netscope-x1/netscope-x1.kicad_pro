@@ -776,6 +776,46 @@
       },
       {
         "netclass": "SYS",
+        "pattern": "B_LED2"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "B_LED3"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "B_MDI0_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "B_MDI0_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "B_MDI1_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "B_MDI1_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "B_MDI2_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "B_MDI2_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "B_MDI3_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "B_MDI3_P"
+      },
+      {
+        "netclass": "SYS",
         "pattern": "CC1_SENSE"
       },
       {
@@ -829,6 +869,30 @@
       {
         "netclass": "SYS",
         "pattern": "COPROC_UART_TX_R"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "DSI_CLK_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "DSI_CLK_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "DSI_D0_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "DSI_D0_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "DSI_D1_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "DSI_D1_P"
       },
       {
         "netclass": "SYS",
@@ -896,6 +960,46 @@
       },
       {
         "netclass": "SYS",
+        "pattern": "PCIE_CLK_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PCIE_CLK_NREQ"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PCIE_CLK_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PCIE_NRST"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PCIE_NWAKE"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PCIE_PWR_EN"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PCIE_RX_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PCIE_RX_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PCIE_TX_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PCIE_TX_P"
+      },
+      {
+        "netclass": "SYS",
         "pattern": "POE_I2C_SCL"
       },
       {
@@ -912,6 +1016,38 @@
       },
       {
         "netclass": "SYS",
+        "pattern": "SFP_LOS"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SFP_MOD_ABS"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SFP_SCL"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SFP_SDA"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SFP_TX_FAULT"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SOM_3V3"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SOM_UART_DBG_RX"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SOM_UART_DBG_TX"
+      },
+      {
+        "netclass": "SYS",
         "pattern": "SPARE_PB4"
       },
       {
@@ -921,6 +1057,46 @@
       {
         "netclass": "SYS",
         "pattern": "SWDIO"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "TOUCH_SCL"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "TOUCH_SDA"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USB3A_DM"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USB3A_DP"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USB3A_RX_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USB3A_RX_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USB3A_TX_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USB3A_TX_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USB3B_DM"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "USB3B_DP"
       },
       {
         "netclass": "SYS",

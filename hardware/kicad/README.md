@@ -6,7 +6,7 @@ Three KiCad 9 projects, at three different levels of completeness. Read the stat
 |---|---|---|
 | `netscope-x1-lower/` | Lower board: keys, status LEDs, buzzer, USB-C | **Real capture, routed, rule-checked.** Gerbers exported. Not fabricated |
 | `../remote-terminator/kicad/rt-1/` | RT-1 remote terminator | **Real capture, routed, rule-checked.** Gerbers exported. Not fabricated |
-| `netscope-x1/` | Main board | **Two of seven sheets captured for real** (coprocessor with the cables to the lower board; power). The other five are block level. Board file: outline, placement guides, footprints of the captured sheets. Not routed |
+| `netscope-x1/` | Main board | **Three of nine sheets captured for real** (processor module with display cable; coprocessor with the cables to the lower board; power). The other six are block level. Board file: outline, placement guides, footprints of the captured sheets. Not routed |
 
 ## Why the main board is not at the same level yet
 
@@ -109,7 +109,21 @@ Design decisions made on this sheet, each a change from the block netlist or a r
 - **The charger's D+/D- pins sit directly on the USB data pair, in parallel with the SoM**, without the analogue switch TI's DSEL pin is meant to drive. It may disturb USB data or charger detection; this needs a bench test.
 - Battery negative reaches ground only through the sense resistor, so the pack's negative lead must not touch chassis or any other ground.
 
-**Block level: the other five sheets.**
+**Captured for real: sheet 05, processor** (`tools/main_sheets.py`). The Compute Module 5 as one 200-pin symbol, its supply capacitors, the 22-way display cable connector, the display's 5 V lead and the debug pads. 112 of the module's 200 pins are connected; the other 88 carry explicit no-connect marks.
+
+The module's pin names come from the pinout table in Raspberry Pi's CM5 data sheet, read as text. About 80 of the 200 were cross-checked against two other published pin lists and agreed. The checker confirms that every planned connection is on the intended pin, and that each of the 15 differential pairs has its positive and negative halves on the matching halves of one module signal.
+
+Open on this sheet:
+
+- **M1 has no footprint.** It is two Hirose DF40C-100DS-0.4V receptacles and four mounting holes at an exact spacing; that should be taken from Raspberry Pi's published design files, not re-drawn from a dimension read off a PDF. KiCad's library does have the single receptacle.
+- **J2 (display 5 V lead) has no footprint**: it depends on the lead supplied with the display.
+- **Written from memory, to be verified before layout:** the 22-way display pin order; that touch I2C belongs on SCL0/SDA0 for this display port; and which GPIO pairs carry UART0 and UART2.
+- Not checked in the data sheet: the voltage limit of the RTC supply pin (tied to the always-on 3.3 V), and whether the module already has pull-ups on GPIO2/3.
+- The display connector is a 1 mm-class Amphenol part chosen because the front of the board has 1.5 mm; its exact part number, height and contact side are candidates.
+
+The old processor sheet was split so this could be captured: the fiber port (U70, J32) and the optional microSD reader (U60, J30) are now their own block sheets, 08 and 09.
+
+**Block level: the other six sheets.**
 
 On those sheets the project is a block diagram in KiCad form, not schematic capture. It puts the checked block netlist into KiCad so that capture can go sheet by sheet in a project that already has the reference designators, net names, electrical domains and isolation rules in place. Nothing in the main-board project can be sent to a fabricator.
 

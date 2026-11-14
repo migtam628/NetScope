@@ -301,6 +301,124 @@ def build_power(s: Sheet) -> None:
         s.part("power:PWR_FLAG", f"#FLG{50 + i}", "PWR_FLAG", (x, 99.06), {"1": net}, ref_at=(x, 93.98), value_at=(x, 91.44))
 
 
+# ---- processor sheet ----------------------------------------------------------------------------
+# Compute Module 5 pin names, pins 1-200, from Raspberry Pi's CM5 data sheet (pinout table, read as
+# text; about 80 of the pins were cross-checked against two other published pin lists).
+CM5_PINS = """GND GND Ethernet_Pair3_P Ethernet_Pair1_P Ethernet_Pair3_N Ethernet_Pair1_N GND GND Ethernet_Pair2_N
+Ethernet_Pair0_N Ethernet_Pair2_P Ethernet_Pair0_P GND GND Ethernet_nLED3 Fan_Tacho Ethernet_nLED2 Ethernet_SYNC_OUT
+Fan_PWM EEPROM_nWP LED_nACT GND GND GPIO26 GPIO21 GPIO19 GPIO20 GPIO13 GPIO16 GPIO6 GPIO12 GND GND GPIO5 ID_SC ID_SD
+GPIO7 GPIO11 GPIO8 GPIO9 GPIO25 GND GND GPIO10 GPIO24 GPIO22 GPIO23 GPIO27 GPIO18 GPIO17 GPIO15 GND GND GPIO4 GPIO14
+GPIO3 SD_CLK GPIO2 GND GND SD_DAT3 SD_CMD SD_DAT0 SD_DAT5 GND GND SD_DAT1 SD_DAT4 SD_DAT2 SD_DAT7 GND SD_DAT6
+SD_VDD_OVERRIDE GND SD_PWR_ON VBAT 5V GPIO_VREF 5V SCL0 5V SDA0 5V CM5_3V3 5V CM5_3V3 5V CM5_1V8 WL_nDisable CM5_1V8
+BT_nDisable PWR_Button nRPIBOOT CC1 LED_nPWR CC2 CAM_GPIO0 GND PMIC_Enable CAM_GPIO1
+USB_OTG_ID PCIe_CLK_nREQ USB_N PCIE_nWAKE USB_P PCIE_PWR_EN GND GND PCIe_nRST PCIe_CLK_P VBUS_EN PCIe_CLK_N GND GND
+MIPI0_D0_N PCIe_RX_P MIPI0_D0_P PCIe_RX_N GND GND MIPI0_D1_N PCIe_TX_P MIPI0_D1_P PCIe_TX_N GND GND MIPI0_C_N
+USB3-0-RX_N MIPI0_C_P USB3-0-RX_P GND GND MIPI0_D2_N USB3-0-DP MIPI0_D2_P USB3-0-DM GND GND MIPI0_D3_N USB3-0-TX_N
+MIPI0_D3_P USB3-0-TX_P HDMI1_HOTPLUG GND HDMI1_SDA HDMI1_TX2_P HDMI1_SCL HDMI1_TX2_N HDMI1_CEC GND HDMI0_CEC
+HDMI1_TX1_P HDMI0_HOTPLUG HDMI1_TX1_N GND GND USB3-1-RX_N HDMI1_TX0_P USB3-1-RX_P HDMI1_TX0_N GND GND USB3-1-DP
+HDMI1_CLK_P USB3-1-DM HDMI1_CLK_N GND GND USB3-1-TX_N HDMI0_TX2_P USB3-1-TX_P HDMI0_TX2_N GND GND MIPI1_D0_N
+HDMI0_TX1_P MIPI1_D0_P HDMI0_TX1_N GND GND MIPI1_D1_N HDMI0_TX0_P MIPI1_D1_P HDMI0_TX0_N GND GND MIPI1_C_N
+HDMI0_CLK_P MIPI1_C_P HDMI0_CLK_N GND GND MIPI1_D2_N MIPI1_D3_N MIPI1_D2_P MIPI1_D3_P GND GND HDMI0_SDA HDMI0_SCL""".split()
+assert len(CM5_PINS) == 200
+# What each used module signal is connected to; every signal not listed here is left unconnected on purpose.
+M1_NETS = {
+    "5V": "+5V", "GND": "GND", "CM5_3V3": "SOM_3V3", "GPIO_VREF": "SOM_3V3", "VBAT": "+3V3_AON",
+    **{f"Ethernet_Pair{i}_{p}": f"B_MDI{i}_{p}" for i in range(4) for p in "PN"},
+    "Ethernet_nLED2": "B_LED2", "Ethernet_nLED3": "B_LED3",
+    "GPIO14": "SOM_UART_DBG_TX", "GPIO15": "SOM_UART_DBG_RX",        # UART0: console
+    "GPIO4": "COPROC_UART_RX", "GPIO5": "COPROC_UART_TX",            # UART2: SoM transmits on GPIO4 into the MCU's RX
+    "GPIO22": "COPROC_BOOT0", "GPIO23": "COPROC_NRST",
+    "GPIO2": "SFP_SDA", "GPIO3": "SFP_SCL",
+    "GPIO16": "SFP_LOS", "GPIO17": "SFP_MOD_ABS", "GPIO26": "SFP_TX_FAULT", "GPIO27": "SFP_TX_DISABLE",
+    "nRPIBOOT": "SOM_NRPIBOOT", "SCL0": "TOUCH_SCL", "SDA0": "TOUCH_SDA",
+    "USB_P": "USBC_DP", "USB_N": "USBC_DN",
+    "PCIe_CLK_nREQ": "PCIE_CLK_NREQ", "PCIE_nWAKE": "PCIE_NWAKE", "PCIE_PWR_EN": "PCIE_PWR_EN", "PCIe_nRST": "PCIE_NRST",
+    "PCIe_CLK_P": "PCIE_CLK_P", "PCIe_CLK_N": "PCIE_CLK_N", "PCIe_RX_P": "PCIE_RX_P", "PCIe_RX_N": "PCIE_RX_N",
+    "PCIe_TX_P": "PCIE_TX_P", "PCIe_TX_N": "PCIE_TX_N",
+    "USB3-0-RX_P": "USB3A_RX_P", "USB3-0-RX_N": "USB3A_RX_N", "USB3-0-TX_P": "USB3A_TX_P", "USB3-0-TX_N": "USB3A_TX_N",
+    "USB3-0-DP": "USB3A_DP", "USB3-0-DM": "USB3A_DM", "USB3-1-DP": "USB3B_DP", "USB3-1-DM": "USB3B_DM",
+    "MIPI1_D0_P": "DSI_D0_P", "MIPI1_D0_N": "DSI_D0_N", "MIPI1_D1_P": "DSI_D1_P", "MIPI1_D1_N": "DSI_D1_N",
+    "MIPI1_C_P": "DSI_CLK_P", "MIPI1_C_N": "DSI_CLK_N",
+}
+# Display cable, 22-way: the usual Raspberry Pi 22-pin MIPI assignment, two data lanes used.
+J1_PINS = ["GND", "DSI_D0_N", "DSI_D0_P", "GND", "DSI_D1_N", "DSI_D1_P", "GND", "DSI_CLK_N", "DSI_CLK_P", "GND",
+           None, None, "GND", None, None, "GND", None, None, "GND", "TOUCH_SCL", "TOUCH_SDA", "SOM_3V3"]
+NO_FOOTPRINT.update({
+    "M1": "two Hirose DF40C-100DS-0.4V receptacles and four M2.5 holes at the spacing in Raspberry Pi's CM5 drawing: to be "
+          "taken from their published design files, not re-measured here",
+    "J2": "depends on the power lead supplied with the display"})
+REFINES.update({
+    **{f"B_MDI{i}_{p}": ("B_MDI",) for i in range(4) for p in "PN"}, "B_LED2": ("B_LEDS",), "B_LED3": ("B_LEDS",),
+    **{f"USB3A_{n}": ("USB3_1",) for n in ("RX_P", "RX_N", "TX_P", "TX_N", "DP", "DM")},
+    "USB3B_DP": ("USB3_2_HS",), "USB3B_DM": ("USB3_2_HS",),
+    **{f"PCIE_{n}": ("PCIE",) for n in ("CLK_NREQ", "NWAKE", "PWR_EN", "NRST", "CLK_P", "CLK_N", "RX_P", "RX_N", "TX_P", "TX_N")},
+    **{f"DSI_{n}": ("DSI",) for n in ("D0_P", "D0_N", "D1_P", "D1_N", "CLK_P", "CLK_N")},
+    "TOUCH_SCL": ("TOUCH_I2C",), "TOUCH_SDA": ("TOUCH_I2C",), "SFP_SCL": ("SFP_I2C",), "SFP_SDA": ("SFP_I2C",),
+    "SFP_LOS": ("SFP_STATUS",), "SFP_MOD_ABS": ("SFP_STATUS",), "SFP_TX_FAULT": ("SFP_STATUS",),
+    "SFP_TX_DISABLE": ("SFP_TX_DISABLE",),
+    "SOM_UART_DBG_TX": ("SOM_UART_DBG",), "SOM_UART_DBG_RX": ("SOM_UART_DBG",), "SOM_NRPIBOOT": ("SOM_NRPIBOOT",),
+    "SOM_3V3": ("SOM_RUN",),                   # the module's 3.3 V output: the coprocessor reads it as "SoM is up"
+})
+EXTRA_OK.update({
+    "M1": {"COPROC_NRST_DBG": "one reset line serves the SoM and the debug pads"},
+    "J41": {"GND": "ground reference pad for a probe or adapter"},
+    "J1": {"SOM_RUN": "the cable's 3.3 V pin is fed from the module's 3.3 V output, the same net the run signal is taken from"},
+})
+
+
+def build_processor(s: Sheet) -> None:
+    s.paper = "A1"
+    C, R = "Device:C", "Device:R"
+    names = [n for n in CM5_PINS]
+    table = [(str(i + 1), n, "power_in" if n in ("5V", "GND") else "passive", "L" if i < 100 else "R")
+             for i, n in enumerate(names)]
+    first_3v3 = names.index("CM5_3V3")
+    table[first_3v3] = (table[first_3v3][0], "CM5_3V3", "power_out", "L")
+    box_symbol("netscope-x1:RaspberryPi_CM5", table, "Raspberry Pi Compute Module 5, both 100-pin connectors (pins from the CM5 data sheet)")
+    unknown = set(M1_NETS) - set(names)
+    if unknown:
+        raise SystemExit(f"M1_NETS names signals the module does not have: {sorted(unknown)}")
+    s.text("Processor: Raspberry Pi Compute Module 5, display cable, debug pads. Sheet captured for real.", (25.4, 25.4), 2.5)
+    s.text("UNTESTED. Module pin names are from the CM5 data sheet. Signals with no label are deliberately unused.", (25.4, 33.02), 1.8)
+    s.part("netscope-x1:RaspberryPi_CM5", "M1", "CM5 (wireless, eMMC)", (419.1, 302.26),
+           {str(i + 1): M1_NETS.get(n) for i, n in enumerate(names)}, "",
+           {"Manufacturer": "Raspberry Pi", "MPN": "CM5 (variant per BOM)"}, ref_at=(398.78, 165.1), value_at=(398.78, 168.91))
+
+    s.text("Module supply: bulk and bypass on +5V at the connector; 3.3 V output used as I/O reference and run signal", (25.4, 60.96))
+    _row(s, 35.56, 83.82, [
+        ("C90", C, "22u 10V", C1206, "+5V", "GND"), ("C91", C, "22u 10V", C1206, "+5V", "GND"),
+        ("C92", C, "100n", C0402, "+5V", "GND"), ("C93", C, "100n", C0402, "SOM_3V3", "GND"),
+        ("R80", R, "10k", R0402, "SOM_3V3", "SOM_RUN"), ("R81", R, "10k", R0402, "SOM_3V3", "SFP_SCL"),
+        ("R82", R, "10k", R0402, "SOM_3V3", "SFP_SDA")])
+    for i, line in enumerate((
+            "R80 lets the always-on coprocessor see the module's 3.3 V without back-feeding it. R81/R82 are weak I2C pull-ups for the",
+            "SFP bus; whether the module already pulls GPIO2/3 up has not been checked. RTC supply (VBAT) is tied to +3V3_AON: the",
+            "pin's voltage limit must be confirmed in the data sheet. USB_OTG_ID, PWR_Button and PMIC_Enable are left open.",
+            "UART numbering (UART0 on GPIO14/15, UART2 on GPIO4/5) is from memory of the Pi 5 device tree: verify before layout.")):
+        s.text(line, (25.4, 106.68 + i * 4.445), 1.5)
+
+    s.text("J1: display cable, 22-way 0.5 mm, DSI on the module's MIPI1 port with two data lanes", (25.4, 147.32))
+    s.part("Connector_Generic_MountingPin:Conn_01x22_MountingPin", "J1", "F32Q 22-way", (63.5, 190.5),
+           {**{str(i + 1): n for i, n in enumerate(J1_PINS)}, "MP": "GND"},
+           "Connector_FFC-FPC:Amphenol_F32Q-1A7x1-11022_1x22-1MP_P0.5mm_Horizontal",
+           {"Manufacturer": "Amphenol", "MPN": "F32Q-1A7H1-11022 (candidate)"}, ref_at=(66.04, 160.02), value_at=(66.04, 162.56))
+    for i, line in enumerate((
+            "Pin order is the usual Raspberry Pi 22-way MIPI assignment, written from memory: verify against the display's",
+            "documentation. Which end is pin 1 and which face the contacts are on depend on the cable. Touch I2C uses SCL0/SDA0,",
+            "assumed to match Raspberry Pi's IO board for this port: verify against its schematic.")):
+        s.text(line, (25.4, 231.14 + i * 4.445), 1.5)
+    s.text("J2: 5 V lead to the display", (139.7, 147.32))
+    s.part("Connector_Generic:Conn_01x02", "J2", "display 5 V", (160.02, 165.1), {"1": "+5V", "2": "GND"}, "",
+           ref_at=(160.02, 158.75), value_at=(160.02, 172.72))
+
+    s.text("J41: unpopulated 1.27 mm pads: SoM console, boot select, coprocessor link taps", (25.4, 264.16))
+    s.part("Connector_Generic:Conn_01x06", "J41", "debug pads", (63.5, 289.56),
+           {"1": "GND", "2": "SOM_UART_DBG_TX", "3": "SOM_UART_DBG_RX", "4": "SOM_NRPIBOOT", "5": "COPROC_UART_TX",
+            "6": "COPROC_UART_RX"}, "Connector_PinHeader_1.27mm:PinHeader_1x06_P1.27mm_Vertical",
+           ref_at=(63.5, 279.4), value_at=(63.5, 302.26))
+
+
 # sheet title in the block netlist -> (file stem, builder)
-CAPTURED = {"Coprocessor, keys, indicators": ("06_coprocessor", build_coprocessor),
+CAPTURED = {"Processor module, display, debug pads": ("05_processor_module", build_processor),
+            "Coprocessor, keys, indicators": ("06_coprocessor", build_coprocessor),
             "Power: USB-C, charger, battery, rails": ("07_power", build_power)}

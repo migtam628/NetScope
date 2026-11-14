@@ -86,7 +86,8 @@ boards:
       - [D20,  F, -30.5, -41.2, 11.0,  4.6,  1.1]
       - [D22,  F, -21.0, -36.5,  4.5,  2.7,  1.1]
       - [J50,  B,  -5.5, -40.9, 21.2,  8.0,  2.0, extra, over]       # FH12-30S; back side: 2.0 mm is too tall for the front       # 30-way FFC to the lower board
-      - [J1,   F,  15.0, -41.0, 15.0,  4.0,  1.0]              # display FFC
+      - [J1,   F,  15.0, -40.4, 19.4,  6.8,  1.2, over]        # display FFC, Amphenol F32Q 22-way (1 mm class)
+      - [J2,   F,  30.5, -41.5,  5.0,  3.0,  0.0]              # display 5 V lead, pads
       - [J51,  B,  24.5, -40.9, 16.2,  8.0,  2.0, extra, over]       # FH12-20S; in line with the lower board's J51       # 20-way power FFC to the lower board
       - [H1,   F, -40.5, 34.0, 0, 0, 0, hole]
       - [H2,   F,  22.0, 26.0, 0, 0, 0, hole]

@@ -46,7 +46,7 @@ NS = uuid.UUID("6f1d5b0e-2c1a-4c55-9d53-0c7a5e1f9a10")
 RAILS = ("GND", "CHASSIS", "POE_VSS")
 G = 2.54
 STUB = 5.08
-PAPER = {"A4": (297.0, 210.0), "A3": (420.0, 297.0), "A2": (594.0, 420.0)}
+PAPER = {"A4": (297.0, 210.0), "A3": (420.0, 297.0), "A2": (594.0, 420.0)}       # block sheets; real sheets set their own
 FONT = "(effects (font (size 1.27 1.27)))"
 
 

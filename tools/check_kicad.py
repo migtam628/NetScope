@@ -41,8 +41,8 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 from kicad_lib import children as kids, load_symbol, unq  # noqa: E402
-from main_sheets import (CAPTURED, EXTRA_OK, HELD_OFF, MCU, NO_FOOTPRINT, OPEN_VALUES, REFINES, U40_PINS,  # noqa: E402
-                         cable_table)
+from main_sheets import (CAPTURED, CM5_PINS, EXTRA_OK, HELD_OFF, M1_NETS, MCU, NO_FOOTPRINT, OPEN_VALUES,  # noqa: E402
+                         REFINES, U40_PINS, cable_table)
 from gen_lower import J50 as LOWER_J50, J51 as LOWER_J51  # noqa: E402
 
 NETLIST = ROOT / "hardware/netlist/netscope-x1.yaml"
@@ -210,6 +210,25 @@ def main() -> int:
     for pin, (net, function) in U40_PINS.items():
         if function and function not in alts.get(pin, set()):
             problems.append(f"U40 {pin}: {function} (for {net}) is not a function of that pin in the library symbol")
+    # module pins: a net named ..._P / ..._N must sit on the module pin of the same polarity, and
+    # the two halves of a pair must come from the same module signal
+    def polarity(name):
+        return "P" if name.endswith(("_P", "-DP", "_DP")) else "N" if name.endswith(("_N", "-DM", "_DM", "_DN")) else ""
+    stem = lambda name: name[:-1] if name.endswith(("DP", "DM", "DN")) else name[:-2]      # noqa: E731
+    pair_source = {}
+    for i, pin_name in enumerate(CM5_PINS, 1):
+        net = M1_NETS.get(pin_name)
+        if not net or net_of.get(("M1", str(i))) != net:
+            if net and pin_name not in ("5V", "GND", "CM5_3V3"):
+                problems.append(f"M1 pin {i} ({pin_name}): {net_of.get(('M1', str(i)))} in KiCad, {net} planned")
+            continue
+        if polarity(net) != polarity(pin_name):
+            problems.append(f"M1 pin {i}: net {net} is on module signal {pin_name}, polarity differs")
+        if polarity(net):
+            pair_source.setdefault(stem(net), set()).add(stem(pin_name))
+    for net_stem, sources in pair_source.items():
+        if len(sources) != 1:
+            problems.append(f"pair {net_stem}: its two halves come from different module signals {sorted(sources)}")
     # hold-off resistors, and the two cable pin tables
     value_of = real
     for net in HELD_OFF:
@@ -232,6 +251,8 @@ def main() -> int:
     print(f"open items on captured sheets: {len(no_fp)} parts without a footprint ({', '.join(sorted(no_fp))}), "
           f"{len(tbd)} values not chosen ({', '.join(sorted(tbd))})")
     checked = sum(1 for v in U40_PINS.values() if v[1])
+    print(f"module pins: {sum(1 for n in CM5_PINS if n in M1_NETS)} of 200 connected as planned, {len(pair_source)} "
+          f"differential pairs checked for polarity")
     print(f"captured sheets: {len(real)} parts, {len(real_nets)} nets; refinement of the block netlist, {checked} pin "
           f"functions, {len(HELD_OFF)} hold-off resistors and both cable pin tables checked")
 
