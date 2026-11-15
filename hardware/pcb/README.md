@@ -27,7 +27,7 @@ Inside the outline; no overlaps on a side; through-hole parts block both sides; 
 
 - **Part envelopes are package-class sizes**, not the selected parts' land patterns. 14 parts have no part number yet.
 - **Small passives are not placed.** Several hundred capacitors and resistors have to fit in the remaining area.
-- **microSD slot is a concept.** The socket now sits on a 15 x 6 mm tab at the main board's top edge, between the two RJ45 jacks, in line with a slot through the top end wall, so a card can be changed without opening the case. Card protrusion, the latch travel of the chosen socket and a dust plug are not worked out, and the slot leaves a thin section at the shell split line.
+- **microSD slot is a concept.** The socket (Hirose DM3AT-SF-PEJM5, push-push) now sits on a 17 x 6 mm tab at the main board's top edge, between the two RJ45 jacks, in line with a slot through the top end wall, so a card can be changed without opening the case. Card protrusion, the latch travel of the chosen socket and a dust plug are not worked out, and the slot leaves a thin section at the shell split line.
 - **Power key** is now a ninth front key in a smaller recessed opening. Accidental-press protection (long press in firmware) is assumed.
 - **PoE load resistors stand upright** against a metal fin to fit; the thermal path to the rear shell is not designed or tested.
 - **Display cable position is assumed.** The display's connector location was not taken from its mechanical drawing.

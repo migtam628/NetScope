@@ -31,6 +31,7 @@
 - Design changes found during that capture: uplink jack shield and termination return moved from the floating CHASSIS net to system ground (the jack's pin layout requires it; only the test port floats); Pulse JK0654219NL rejected (33 mm deep); J11 and U54 moved on the floorplan; D10 split into D10/D11; new block net LAN_NRST (module GPIO6 resets the USB Ethernet bridge).
 - Processor sheet: two items closed from the CM5 data sheet. RTC input range 2.5-3.5 V (the always-on 3.3 V is fine); GPIO2/3 have 1.8 k pull-ups on the module, so R81/R82 were removed.
 - `tools/check_kicad.py` tracks a third kind of open item: footprints that exist but must be confirmed against the maker's drawing.
+- Main board, microSD reader sheet captured for real (option, all 20 parts marked DNP, footprints on the board): USB2244, 24 MHz crystal, Hirose DM3AT-SF-PEJM5 push-push socket, support parts per Microchip's USB2244 checklist. Block netlist correction: U60 is supplied from +3V3, not +5V. The data sheet's pin diagram and pin tables disagree on pins 23-26 (tables used; listed to confirm). Board tab for the socket widened from 15 to 17 mm.
 
 ## 0.1.0 - 2026-11-11
 

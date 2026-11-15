@@ -1284,6 +1284,38 @@
       },
       {
         "netclass": "SYS",
+        "pattern": "SD_CLK"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SD_CMD"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SD_D0"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SD_D1"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SD_D2"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SD_D3"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SD_NCD"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "SD_VCC"
+      },
+      {
+        "netclass": "SYS",
         "pattern": "SFP_LOS"
       },
       {
@@ -1333,6 +1365,42 @@
       {
         "netclass": "SYS",
         "pattern": "TOUCH_SDA"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "U60_1V8"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "U60_1V8PLL"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "U60_NRST"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "U60_RBIAS"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "U60_SCK"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "U60_SDA"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "U60_WP"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "U60_XI"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "U60_XO"
       },
       {
         "netclass": "SYS",

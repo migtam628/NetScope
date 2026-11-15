@@ -6,7 +6,7 @@ Three KiCad 9 projects, at three different levels of completeness. Read the stat
 |---|---|---|
 | `netscope-x1-lower/` | Lower board: keys, status LEDs, buzzer, USB-C | **Real capture, routed, rule-checked.** Gerbers exported. Not fabricated |
 | `../remote-terminator/kicad/rt-1/` | RT-1 remote terminator | **Real capture, routed, rule-checked.** Gerbers exported. Not fabricated |
-| `netscope-x1/` | Main board | **Four of nine sheets captured for real** (test-port Ethernet and uplink jack; processor module with display cable; coprocessor with the cables to the lower board; power). The other five are block level. Board file: outline, placement guides, footprints of the captured sheets. Not routed |
+| `netscope-x1/` | Main board | **Five of nine sheets captured for real** (test-port Ethernet and uplink jack; processor module with display cable; coprocessor with the cables to the lower board; power; the optional microSD reader). The other four are block level. Board file: outline, placement guides, footprints of the captured sheets. Not routed |
 
 ## Why the main board is not at the same level yet
 
@@ -16,7 +16,7 @@ A pin-accurate main-board schematic cannot be completed honestly today, for thre
 2. **Thirteen BOM lines are still "tbd"** (`../bom/bom.csv`), among them the PoE magnetics. A part that has not been chosen has no pins to draw.
 3. **The bench kit has not been run** (`docs/15-dev-kit-spike.md`). It decides whether the test-port MAC/PHY pair and the fiber controller work at all on this platform.
 
-Everything not blocked by those three can be captured now, sheet by sheet: the wiremap front end, Port A relays and jack, the PoE measurement island and the microSD reader. The coprocessor, power, processor and test-port sheets are done.
+Everything not blocked by those three can be captured now, sheet by sheet: the wiremap front end, Port A relays and jack, and the PoE measurement island. The coprocessor, power, processor, test-port and microSD sheets are done.
 
 Routing is a separate limit. The lower board and the RT-1 were routed by script with the project's own grid router (`tools/gridrouter.py`), which is adequate for low-speed two-layer boards. It does no impedance control, length matching or differential-pair routing, so it is **not** adequate for the main board's 10 Gb serial link, PCIe, USB 3 and RGMII. Those need interactive layout by someone with the tools and experience for it.
 
@@ -145,9 +145,16 @@ Open on this sheet (the checker lists the footprint items):
 - The Port A magnetics (T1, sheet 01) need a 100 nF capacitor per centre tap for the KSZ9131, to be drawn when sheet 01 is captured.
 - **Housing:** J11's front now sits 2.5 mm behind the inside of the top end wall (it was flush), so the plug passes through about 8 mm of wall and bumper. Check a booted plug in the printed housing; if it binds, move the board or deepen the opening. J10 should line up with J11 when sheet 01 is captured.
 
+**Captured for real: sheet 09, microSD reader (option)** (`tools/main_sheets.py`). USB2244 card reader (U60) on the module's second USB 2.0 pair, 24 MHz crystal, Hirose DM3AT push-push socket (J30), and the support parts from Microchip's USB2244 hardware design checklist (0.1 uF per 3.3 V pin, 1 uF on each internal 1.8 V output, 12.0 k bias, 1 M across the crystal, 4.7 uF on card power, 10 k / 1 uF reset, pull-down on write-protect so cards can be written). 20 parts, **all marked DNP**: the reader is not fitted on rev A, but its footprints are on the board.
+
+- **The block netlist had U60 on +5V; it is on +3V3 now.** The chip runs from 3.3 V and makes its own 1.8 V.
+- **The data sheet contradicts itself on pins 23-26** (its pin diagram against its two pin tables). The sheet follows the tables; the checker lists U60 as a pin table to confirm, together with its exposed-pad size.
+- No configuration EEPROM; SDA/SCK are pulled up so a probe for one sees an idle bus. That is an assumption, the checklist is silent.
+- The board's microSD tab is now 17 mm wide (was 15): the socket's pads need 0.5 mm to the edge. In the housing, the card's end sits about 6 mm inside the outer face of wall and bumper, which a push-push card needs reaching with a fingertip or tool: to be tried on a printed housing.
+
 The old processor sheet was split so this could be captured: the fiber port (U70, J32) and the optional microSD reader (U60, J30) are now their own block sheets, 08 and 09.
 
-**Block level: the other five sheets.**
+**Block level: the other four sheets.**
 
 On those sheets the project is a block diagram in KiCad form, not schematic capture. It puts the checked block netlist into KiCad so that capture can go sheet by sheet in a project that already has the reference designators, net names, electrical domains and isolation rules in place. Nothing in the main-board project can be sent to a fabricator.
 
@@ -155,7 +162,7 @@ On those sheets the project is a block diagram in KiCad form, not schematic capt
 
 | File | What it is | How it was made |
 |---|---|---|
-| `netscope-x1.kicad_sch` + `01_…` to `09_….kicad_sch` | Root sheet and nine hierarchical sheets: four captured for real (183 parts with real pins and footprints, except the open items above) and five block level (28 parts) | Generated by `tools/gen_kicad.py`: block sheets from `../netlist/netscope-x1.yaml`, captured sheets from the builders in `tools/main_sheets.py` |
+| `netscope-x1.kicad_sch` + `01_…` to `09_….kicad_sch` | Root sheet and nine hierarchical sheets: five captured for real (203 parts with real pins and footprints, except the open items above) and four block level (26 parts) | Generated by `tools/gen_kicad.py`: block sheets from `../netlist/netscope-x1.yaml`, captured sheets from the builders in `tools/main_sheets.py` |
 | `netscope-x1.kicad_sym` | Project-local library: block symbols, plus box symbols with data-sheet pin numbers for parts KiCad's library lacks | Generated |
 | `netscope-x1.kicad_pro` | Project settings. Net classes `LINE`, `POE`, `SYS` and one assignment per net | Net-class section generated; everything else is KiCad's and is kept on regeneration |
 | `netscope-x1.kicad_dru` | Custom rules: 2.5 mm between nets of different domains | Generated from `rules.isolation` in `../pcb/floorplan.yaml` |
@@ -165,10 +172,10 @@ On those sheets the project is a block diagram in KiCad form, not schematic capt
 
 Run `python tools/check_kicad.py` (needs KiCad 9 on the path). With KiCad 9.0.9 it reports:
 
-- **ERC:** 10 sheets, 0 violations at every severity. 34 nets end at a block sheet that is not captured yet; only nets explained by the block netlist are accepted as such.
-- **Block sheets:** KiCad's netlist equals the YAML netlist for the 28 block-level parts, pin for pin.
-- **Captured sheets:** every block net of every captured part is implemented at pin level, and no part touches a block net the block netlist does not give it (exceptions are listed with a reason); coprocessor pin functions against the library's alternate-function list; module pins and the polarity of 15 differential pairs; hold-off resistors; both cable pin tables; and the open items (parts without footprints, footprints to confirm, values not chosen) must match the lists in `tools/main_sheets.py`.
-- **Net classes:** every net carries the class of its domain, sheet by sheet (330 assignments).
+- **ERC:** 10 sheets, 0 violations at every severity. 31 nets end at a block sheet that is not captured yet; only nets explained by the block netlist are accepted as such.
+- **Block sheets:** KiCad's netlist equals the YAML netlist for the 26 block-level parts, pin for pin.
+- **Captured sheets:** every block net of every captured part is implemented at pin level, and no part touches a block net the block netlist does not give it (exceptions are listed with a reason); coprocessor pin functions against the library's alternate-function list; module pins and the polarity of 15 differential pairs; hold-off resistors; both cable pin tables; and the open items (parts without footprints, footprints or pin tables to confirm, values not chosen) must match the lists in `tools/main_sheets.py`.
+- **Net classes:** every net carries the class of its domain, sheet by sheet (347 assignments).
 - **DRC on the board file:** 0 violations, besides the cable connectors' accepted edge overhang and silkscreen warnings left for layout. The board is not routed: open connections are counted, not failed.
 - **Isolation rules:** on a scratch board, a 1.0 mm gap between LINE and SYS, POE and SYS, and LINE and POE tracks is flagged by the matching rule, and two LINE tracks 0.4 mm apart are not.
 
@@ -177,7 +184,7 @@ The checker was itself tested by breaking things on purpose: a mis-named label f
 ## What a pass does not mean
 
 - **Block sheets are function-level.** Their pins stand for functions, often several signals each, and carry placeholder numbers.
-- **Data-sheet pin tables were read as text.** The box symbols for parts without a KiCad symbol (TPS61088, TPS62840, MAX17055, CM5, LAN7801, KSZ9131RNX) must be compared with the PDFs by eye.
+- **Data-sheet pin tables were read as text.** The box symbols for parts without a KiCad symbol (TPS61088, TPS62840, MAX17055, CM5, LAN7801, KSZ9131RNX, USB2244) must be compared with the PDFs by eye.
 - **ERC only sees pin types.** It cannot catch a wrong voltage, a wrong value or a misread data sheet.
 - **The board is not laid out.** Footprints of captured sheets are placed or parked, nothing is routed, and the 6-layer stack-up is KiCad's default, not the one in `docs/11-pcb-design-guide.md`.
 - **2.5 mm is a design value**, not a safety rating. Creepage and clearance across the PoE barrier need a review against the applicable standard before layout.
@@ -186,7 +193,7 @@ The checker was itself tested by breaking things on purpose: a mis-named label f
 ## How to capture the next sheet
 
 1. Write a builder in `tools/main_sheets.py`: real symbols (KiCad library, or `box_symbol` with pin numbers from the data sheet), every pin given a net or an explicit no-connect, footprints, and the application circuit.
-2. Declare in `REFINES` how each pin-level net implements a block net (or is local), and list anything not yet decided in `NO_FOOTPRINT`, `OPEN_VALUES` or `FOOTPRINT_TO_CONFIRM`.
+2. Declare in `REFINES` how each pin-level net implements a block net (or is local), and list anything not yet decided in `NO_FOOTPRINT`, `OPEN_VALUES` or `TO_CONFIRM`.
 3. Register the sheet in `CAPTURED`, run `tools/gen_kicad.py`, `tools/seed_kicad_pcb.py --force`, `tools/gen_kicad.py` again, then `tools/check_kicad.py`.
 4. Fix what the checker and DRC find in the design, not in the checker.
 

@@ -58,7 +58,7 @@ Why each was chosen, and what was rejected, is in `docs/02-architecture.md`.
 ## What is and is not claimed
 
 - Cable testing is continuity, wiremap and TDR **verification**. It is not TIA/ISO certification and the product must never be described that way.
-- Cost and runtime figures are calculated estimates. Distributor prices were not checked line by line; 13 of 49 BOM parts are still "tbd".
+- Cost and runtime figures are calculated estimates. Distributor prices were not checked line by line; 13 of 50 BOM parts are still "tbd".
 - `firmware/netscope/hal/linux.py` (the real-network backend) has not been run against a network or a board.
 
 ## Next step

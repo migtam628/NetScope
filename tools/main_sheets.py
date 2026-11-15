@@ -185,12 +185,12 @@ REFINES.update({
 })
 
 
-def _row(s: Sheet, x: float, y: float, parts, pitch: float = 15.24) -> None:
+def _row(s: Sheet, x: float, y: float, parts, pitch: float = 15.24, dnp: bool = False) -> None:
     """A row of two-pin parts: (reference, symbol, value, footprint, net on pin 1, net on pin 2[, fields])."""
     for i, (ref, sym, value, fp, a, b, *more) in enumerate(parts):
         px = round(x + i * pitch, 2)
         s.part(sym, ref, value, (px, y), {"1": a, "2": b}, fp, more[0] if more else None,
-               ref_at=(px + 3.81, y - 1.27), value_at=(px + 3.81, y + 1.27))
+               ref_at=(px + 3.81, y - 1.27), value_at=(px + 3.81, y + 1.27), dnp=dnp)
 
 
 def build_power(s: Sheet) -> None:
@@ -465,8 +465,8 @@ RGMII_RX = ("RXD0", "RXD1", "RXD2", "RXD3", "RX_CTL", "RXC")        # PHY drives
 PHY_STRAPS = {"A_RXD3_PHY": "+3V3", "A_RXD2_PHY": "+3V3", "A_RXD1_PHY": "+3V3", "A_RXD0_PHY": "GND",
               "A_RX_CTL_PHY": "GND", "A_RXC_PHY": "GND", "PHY_LED2": "GND", "PHY_LED1": "+3V3",
               "PHY_LED_MODE": "+3V3", "A_PHY_INT_N": "+3V3"}
-# Parts that have a footprint, but one that must be checked against the maker's drawing before layout.
-FOOTPRINT_TO_CONFIRM = {
+# Parts whose footprint or pin assignment must be checked against the maker's drawing before layout.
+TO_CONFIRM = {
     "U11": "LAN7801 64-SQFN 9 x 9 mm: the exposed-pad size was not in the data sheet text; KiCad's 7.15 mm pad is a placeholder",
     "U10": "KSZ9131RNX 48-QFN 7 x 7 mm: exposed-pad size to be taken from Microchip's package drawing; 5.6 mm pad is a placeholder",
     "J11": "UDE RB1-125B8G1A: LED anode/cathode pins taken from the KiCad symbol's drawing (green L3/L4, yellow L1/L2); "
@@ -630,8 +630,78 @@ def build_test_port(s: Sheet) -> None:
         s.text(line, (25.4, 497.84 + i * 4.445), 1.5)
 
 
+# ---- microSD reader sheet (option, not fitted on rev A) ---------------------------------------------
+# USB2244 pins from Microchip's USB224x data sheet (DS00001979A, reset-state table), which agrees with the
+# older SMSC pin-description table; the same data sheet's pin diagram disagrees for pins 23-26.  Support
+# parts per Microchip's USB2244 hardware design checklist (DS00004319A).
+USB2244 = [(n, name, t, "L") for n, name, t in (
+    ("2", "USB+", "bidirectional"), ("3", "USB-", "bidirectional"), ("33", "XTAL1", "input"), ("32", "XTAL2", "output"),
+    ("35", "RBIAS", "passive"), ("18", "RESET_N", "input"), ("28", "TEST", "input"), ("27", "RXD/SDA", "bidirectional"),
+    ("31", "TXD/SCK", "bidirectional"), ("1", "LED", "output"), ("12", "NC", "no_connect"), ("15", "NC", "no_connect"),
+    ("16", "NC", "no_connect"), ("17", "NC", "no_connect"), ("19", "(unnamed)", "no_connect"),
+    ("24", "(unnamed)", "no_connect"), ("29", "(unnamed)", "no_connect"))]
+USB2244 += [(n, name, t, "R") for n, name, t in (
+    ("9", "SD_CLK", "output"), ("11", "SD_CMD", "bidirectional"), ("5", "SD_D0", "bidirectional"),
+    ("4", "SD_D1", "bidirectional"), ("25", "SD_D2", "bidirectional"), ("23", "SD_D3", "bidirectional"),
+    ("20", "SD_D4", "bidirectional"), ("10", "SD_D5", "bidirectional"), ("8", "SD_D6", "bidirectional"),
+    ("7", "SD_D7", "bidirectional"), ("26", "SD_nCD", "input"), ("30", "SD_WP", "input"), ("21", "CRD_PWR", "power_out"),
+    ("6", "VDD33", "power_in"), ("14", "VDD33", "power_in"), ("22", "VDD33", "power_in"), ("36", "VDDA33", "power_in"),
+    ("13", "VDD18", "power_out"), ("34", "VDD18PLL", "power_out"), ("37", "VSS", "power_in"))]
+TO_CONFIRM.update({
+    "U60": "USB2244 36-QFN 6 x 6 mm: pins 23-26 differ between the data sheet's tables and its pin diagram (tables used); "
+           "exposed-pad size not in the text (4.1 mm placeholder)"})
+REFINES.update({
+    **{n: ("SD_BUS",) for n in ("SD_CLK", "SD_CMD", "SD_D0", "SD_D1", "SD_D2", "SD_D3", "SD_NCD", "SD_VCC")},
+    **{n: () for n in ("U60_1V8", "U60_1V8PLL", "U60_NRST", "U60_SDA", "U60_SCK", "U60_WP", "U60_XI", "U60_XO", "U60_RBIAS")},
+})
+
+
+def build_microsd(s: Sheet) -> None:
+    s.paper = "A3"
+    C, R = "Device:C", "Device:R"
+    box_symbol("netscope-x1:USB2244", USB2244, "USB 2.0 SD/MMC card reader, 36-QFN 6x6 (pins from Microchip DS00001979A)")
+    s.text("microSD reader (OPTION, not fitted on rev A: every part is marked DNP). Sheet captured for real.", (20.32, 20.32), 2.0)
+    s.text("UNTESTED. USB2244 on the module's second USB 2.0 pair; card power from the reader's own switch.", (20.32, 25.4))
+    usb = {"USB+": "USB3B_DP", "USB-": "USB3B_DM", "XTAL1": "U60_XI", "XTAL2": "U60_XO", "RBIAS": "U60_RBIAS",
+           "RESET_N": "U60_NRST", "TEST": "GND", "RXD/SDA": "U60_SDA", "TXD/SCK": "U60_SCK", "LED": None, "NC": None,
+           "(unnamed)": None, "SD_CLK": "SD_CLK", "SD_CMD": "SD_CMD", "SD_D0": "SD_D0", "SD_D1": "SD_D1", "SD_D2": "SD_D2",
+           "SD_D3": "SD_D3", "SD_D4": None, "SD_D5": None, "SD_D6": None, "SD_D7": None, "SD_nCD": "SD_NCD", "SD_WP": "U60_WP",
+           "CRD_PWR": "SD_VCC", "VDD33": "+3V3", "VDDA33": "+3V3", "VDD18": "U60_1V8", "VDD18PLL": "U60_1V8PLL", "VSS": "GND"}
+    s.part("netscope-x1:USB2244", "U60", "USB2244-AEZG", (139.7, 101.6), {n: usb[name] for n, name, _, _ in USB2244},
+           "Package_DFN_QFN:QFN-36-1EP_6x6mm_P0.5mm_EP4.1x4.1mm", {"Manufacturer": "Microchip", "MPN": "USB2244-AEZG-06"},
+           ref_at=(127.0, 68.58), value_at=(127.0, 71.12), dnp=True)
+    s.part("Device:Crystal_GND24", "Y3", "24 MHz", (139.7, 157.48), {"1": "U60_XI", "3": "U60_XO", "2": "GND", "4": "GND"},
+           "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm", ref_at=(139.7, 149.86), value_at=(147.32, 149.86), dnp=True)
+    s.text("J30: push-push microSD socket, card slot in the top end wall", (241.3, 55.88))
+    s.part("Connector:Micro_SD_Card_Det_Hirose_DM3AT", "J30", "DM3AT-SF-PEJM5", (281.94, 99.06),
+           {"1": "SD_D2", "2": "SD_D3", "3": "SD_CMD", "4": "SD_VCC", "5": "SD_CLK", "6": "GND", "7": "SD_D0", "8": "SD_D1",
+            "9": "SD_NCD", "10": "GND", "11": "GND"}, "Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5",
+           {"Manufacturer": "Hirose", "MPN": "DM3AT-SF-PEJM5"}, ref_at=(271.78, 71.12), value_at=(271.78, 73.66), dnp=True)
+    s.text("Support parts (USB2244 hardware design checklist)", (20.32, 190.5))
+    _row(s, 25.4, 213.36, [
+        *[(f"C{160 + i}", C, "100n", C0402, "+3V3", "GND") for i in range(4)],          # VDD33 x3, VDDA33
+        ("C164", C, "1u", C0402, "U60_1V8", "GND"), ("C165", C, "1u", C0402, "U60_1V8PLL", "GND"),
+        ("C166", C, "4u7", C0603, "SD_VCC", "GND"), ("C167", C, "1u", C0402, "U60_NRST", "GND"),
+        ("C168", C, "18p", C0402, "U60_XI", "GND"), ("C169", C, "18p", C0402, "U60_XO", "GND"),
+        ("R160", R, "1M", R0402, "U60_XI", "U60_XO"), ("R161", R, "12k0 1%", R0402, "U60_RBIAS", "GND"),
+        ("R162", R, "10k", R0402, "+3V3", "U60_NRST"), ("R163", R, "10k", R0402, "+3V3", "SD_NCD"),
+        ("R164", R, "10k", R0402, "U60_WP", "GND"), ("R165", R, "10k", R0402, "+3V3", "U60_SDA"),
+        ("R166", R, "10k", R0402, "+3V3", "U60_SCK")], dnp=True)
+    notes = (
+        "Card detect: the socket's switch is normally open and closes with a card in, pulling SD_nCD low against R163.",
+        "SD_WP pulled down (R164): the checklist says this is needed to write to microSD. D4-D7 float (4-bit card).",
+        "Reset: 10k / 1u to 3.3 V as in the checklist's figure; a reset after power-up is not required.",
+        "No configuration EEPROM: internal defaults. SDA/SCK pulled up so a probe for an EEPROM sees an idle bus (the",
+        "checklist does not say what to do with them; this is an assumption). Crystal: 24 MHz, CL 10 pF, 18 pF loads.",
+        "Powered from +3V3, not +5V as the block netlist had it: the chip runs from 3.3 V and makes its own 1.8 V.",
+        "No ESD parts on the card lines; add them if the slot is reachable in normal use.")
+    for i, line in enumerate(notes):
+        s.text(line, (20.32, 241.3 + i * 3.81), 1.27)
+
+
 # sheet title in the block netlist -> (file stem, builder)
 CAPTURED = {"Test-port MAC and PHY, uplink port": ("02_test_port_mac_and_phy", build_test_port),
             "Processor module, display, debug pads": ("05_processor_module", build_processor),
             "Coprocessor, keys, indicators": ("06_coprocessor", build_coprocessor),
-            "Power: USB-C, charger, battery, rails": ("07_power", build_power)}
+            "Power: USB-C, charger, battery, rails": ("07_power", build_power),
+            "microSD reader (option)": ("09_microsd_reader_option", build_microsd)}

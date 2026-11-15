@@ -36,7 +36,8 @@ CX, CY = 150.0, 105.0          # board centre on the A4 page, mm
 
 FP_DIR = Path("/usr/share/kicad/footprints")
 TURN = {"J50": 180, "J51": 180,                           # back-side cable connectors: cable leaves at the bottom edge
-        "J11": 0}                                           # back-side jack: plug opening at the top edge (FACING checks it)
+        "J11": 0,                                           # back-side jack: plug opening at the top edge (FACING checks it)
+        "J30": 0}                                           # back-side microSD socket: card enters from the top edge
 FACING = {ref: (lambda f, p: all(pcbnew.ToMM(pad.GetPosition().y) < CY - p[3] + 1.0          # pads inboard of the body
                                  for pad in f.Pads() if pad.GetNumber().isdigit())
                 and next(pad for pad in f.Pads() if pad.GetNumber() == "1").GetPosition().x > pt(p[2], 0).x)  # pin 1 on the right
@@ -44,6 +45,9 @@ FACING = {ref: (lambda f, p: all(pcbnew.ToMM(pad.GetPosition().y) < CY - p[3] + 
 # the jack's LED pins sit near its opening, the signal pins at the back: LEDs must be nearer the top edge
 FACING["J11"] = lambda f, p: (max(pad.GetPosition().y for pad in f.Pads() if pad.GetNumber().startswith("L"))
                               < min(pad.GetPosition().y for pad in f.Pads() if pad.GetNumber().startswith("R")))
+# the socket's contact row is at the back of the card: further from the top edge than its card-detect pad
+FACING["J30"] = lambda f, p: (min(pad.GetPosition().y for pad in f.Pads() if pad.GetNumber() in "12345678")
+                              > next(pad for pad in f.Pads() if pad.GetNumber() == "10").GetPosition().y)
 
 
 def read_netlist():
@@ -58,7 +62,9 @@ def read_netlist():
         get = lambda k: unq(children(c, k)[0][1]) if children(c, k) and len(children(c, k)[0]) > 1 else ""   # noqa: E731
         if get("footprint"):
             sheet = unq(children(children(c, "sheetpath")[0], "tstamps")[0][1])
-            comps[get("ref")] = {"value": get("value"), "footprint": get("footprint"), "path": sheet + get("tstamps")}
+            dnp = any(unq(children(pr, "name")[0][1]) == "dnp" for pr in children(c, "property"))
+            comps[get("ref")] = {"value": get("value"), "footprint": get("footprint"), "path": sheet + get("tstamps"),
+                                 "dnp": dnp}
     pad_net = {}
     for n in children(children(tree, "nets")[0], "net"):
         for x in children(n, "node"):
@@ -140,6 +146,7 @@ def main() -> None:
         f.SetReference(ref)
         f.SetValue(comps[ref]["value"])
         f.SetPath(pcbnew.KIID_PATH(comps[ref]["path"]))
+        f.SetDNP(comps[ref]["dnp"])                        # option parts: footprint present, not fitted
         board.Add(f)
         if ref in spot:                                    # floorplan position: centre the courtyard on it
             _, side, x, y, *_ = spot[ref]

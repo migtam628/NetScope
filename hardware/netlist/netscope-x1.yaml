@@ -197,9 +197,9 @@ nets:
   - {name: VBAT, domain: SYS, source: BT1.PLUS, nodes: [BT1.PLUS, U51.CELL, U50.BAT]}
   - {name: VSYS, domain: SYS, source: U50.SYS, nodes: [U50.SYS, U52.VIN, U53.VIN]}
   - {name: BAT_NTC, domain: SYS, nodes: [BT1.NTC, U50.TS]}      # the gauge has its own board thermistor
-  - {name: +5V, domain: SYS, source: U52.VOUT, nodes: [U52.VOUT, M1.5V, J2.5V, U54.VIN, U55.VIN, PS1.VIN_P, K1.COIL_SUPPLY, K2.COIL_SUPPLY, K3.COIL_SUPPLY, K4.COIL_SUPPLY, U60.VBUS_IN, U70.VIN_VIA_REG, J32.VCC_VIA_SWITCH]}
+  - {name: +5V, domain: SYS, source: U52.VOUT, nodes: [U52.VOUT, M1.5V, J2.5V, U54.VIN, U55.VIN, PS1.VIN_P, K1.COIL_SUPPLY, K2.COIL_SUPPLY, K3.COIL_SUPPLY, K4.COIL_SUPPLY, U70.VIN_VIA_REG, J32.VCC_VIA_SWITCH]}
   - {name: +3V3_AON, domain: SYS, source: U53.VOUT, nodes: [U53.VOUT, U40.VDD, M1.VBAT_RTC, U20.VCC1, SW1.PULLUP]}
-  - {name: +3V3, domain: SYS, source: U54.VOUT, nodes: [U54.VOUT, U10.VDD, U11.VDD, U32.VDD, U33.VDD]}      # status LEDs are driven from U40 to ground, no supply pin
+  - {name: +3V3, domain: SYS, source: U54.VOUT, nodes: [U54.VOUT, U10.VDD, U11.VDD, U32.VDD, U33.VDD, U60.VDD]}      # status LEDs are driven from U40 to ground, no supply pin
   - {name: +15V, domain: SYS, source: U55.VPOS, nodes: [U55.VPOS, U30.VDD, U31.VDD]}
   - {name: -15V, domain: SYS, source: U55.VNEG, nodes: [U55.VNEG, U30.VSS, U31.VSS]}
   - {name: PWR_I2C, domain: SYS, nodes: [U40.I2C1, U50.I2C, U51.I2C]}
