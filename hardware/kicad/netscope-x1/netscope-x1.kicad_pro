@@ -507,6 +507,10 @@
         "pattern": "USB3_1"
       },
       {
+        "netclass": "SYS",
+        "pattern": "LAN_NRST"
+      },
+      {
         "netclass": "POE",
         "pattern": "CT_A"
       },
@@ -728,6 +732,142 @@
       },
       {
         "netclass": "SYS",
+        "pattern": "A_MDC"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_MDI_A_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_MDI_A_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_MDI_B_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_MDI_B_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_MDI_C_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_MDI_C_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_MDI_D_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_MDI_D_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_PHY_INT_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RXC"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RXC_PHY"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RXD0"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RXD0_PHY"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RXD1"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RXD1_PHY"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RXD2"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RXD2_PHY"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RXD3"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RXD3_PHY"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RX_CTL"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_RX_CTL_PHY"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TXC"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TXC_MAC"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TXD0"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TXD0_MAC"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TXD1"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TXD1_MAC"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TXD2"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TXD2_MAC"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TXD3"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TXD3_MAC"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TX_CTL"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "A_TX_CTL_MAC"
+      },
+      {
+        "netclass": "SYS",
         "pattern": "BAT_NEG"
       },
       {
@@ -776,11 +916,23 @@
       },
       {
         "netclass": "SYS",
+        "pattern": "B_CT"
+      },
+      {
+        "netclass": "SYS",
         "pattern": "B_LED2"
       },
       {
         "netclass": "SYS",
+        "pattern": "B_LED2_A"
+      },
+      {
+        "netclass": "SYS",
         "pattern": "B_LED3"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "B_LED3_A"
       },
       {
         "netclass": "SYS",
@@ -944,6 +1096,74 @@
       },
       {
         "netclass": "SYS",
+        "pattern": "LAN_1V2"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_1V2A"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_2V5"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_CLK125"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_EEDI"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_FILT"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_RBIAS"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_REXT"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_SSTX_N"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_SSTX_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_SW"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_TCK"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_TDI"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_TMS"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_VBUS_DET"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_XI"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "LAN_XO"
+      },
+      {
+        "netclass": "SYS",
         "pattern": "LED1"
       },
       {
@@ -997,6 +1217,54 @@
       {
         "netclass": "SYS",
         "pattern": "PCIE_TX_P"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_1V2"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_1V2A"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_1V2PLL"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_1V2_EN"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_1V2_FB"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_1V2_SW"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_ISET"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_LED1"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_LED2"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_LED_MODE"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_XI"
+      },
+      {
+        "netclass": "SYS",
+        "pattern": "PHY_XO"
       },
       {
         "netclass": "SYS",

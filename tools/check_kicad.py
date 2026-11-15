@@ -41,8 +41,8 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 from kicad_lib import children as kids, load_symbol, unq  # noqa: E402
-from main_sheets import (CAPTURED, CM5_PINS, EXTRA_OK, HELD_OFF, M1_NETS, MCU, NO_FOOTPRINT, OPEN_VALUES,  # noqa: E402
-                         REFINES, U40_PINS, cable_table)
+from main_sheets import (CAPTURED, CM5_PINS, EXTRA_OK, FOOTPRINT_TO_CONFIRM, HELD_OFF, M1_NETS, MCU,  # noqa: E402
+                         NO_FOOTPRINT, OPEN_VALUES, REFINES, U40_PINS, cable_table)
 from gen_lower import J50 as LOWER_J50, J51 as LOWER_J51  # noqa: E402
 
 NETLIST = ROOT / "hardware/netlist/netscope-x1.yaml"
@@ -248,8 +248,12 @@ def main() -> int:
         problems.append(f"{r}: footprint missing in the schematic and NO_FOOTPRINT in tools/main_sheets.py disagree")
     for r in sorted(tbd ^ set(OPEN_VALUES)):
         problems.append(f"{r}: value TBD in the schematic and OPEN_VALUES in tools/main_sheets.py disagree")
+    for r in sorted(FOOTPRINT_TO_CONFIRM):
+        if r not in real or not fv[r][0]:
+            problems.append(f"{r}: listed in FOOTPRINT_TO_CONFIRM but has no footprint on a captured sheet")
     print(f"open items on captured sheets: {len(no_fp)} parts without a footprint ({', '.join(sorted(no_fp))}), "
-          f"{len(tbd)} values not chosen ({', '.join(sorted(tbd))})")
+          f"{len(FOOTPRINT_TO_CONFIRM)} footprints to confirm against the maker's drawing "
+          f"({', '.join(sorted(FOOTPRINT_TO_CONFIRM))}), {len(tbd)} values not chosen ({', '.join(sorted(tbd))})")
     checked = sum(1 for v in U40_PINS.values() if v[1])
     print(f"module pins: {sum(1 for n in CM5_PINS if n in M1_NETS)} of 200 connected as planned, {len(pair_source)} "
           f"differential pairs checked for polarity")

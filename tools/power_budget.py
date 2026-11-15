@@ -69,6 +69,9 @@ def main() -> None:
             "- Peak: the SoM is specified for up to 5 A at 5 V. At 3.3 V battery that is about "
             f"{25 / 3.3 / BOOST_EFF:.1f} A from the pack, at the edge of the boost converter. "
             "The CPU cap on battery is what keeps peaks inside the budget; see risk R-05.",
+            "- The 10 Gb fiber port (added later) is not in the table above. Controller under 1 W by its maker's "
+            "brief plus an optical module of roughly 1 W: about 2 W extra while the port is powered. It is "
+            "switched off when not in use. Unmeasured.",
             "- PoE load tests dissipate the PoE's power, not the battery's.", "",
             "## What Phase 7 must measure", "",
             "1. SoM current at idle, during a scan, and during an iperf3 run, with the CPU cap applied.",

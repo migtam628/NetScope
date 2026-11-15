@@ -43,7 +43,8 @@ components:
   T1:   {part: "1000BASE-T PoE magnetics, 4 CT",     domain: [LINE, SYS, POE], bom: magnetics_poe}
   U10:  {part: "KSZ9131RNX gigabit PHY",             domain: SYS, bom: phy}
   U11:  {part: "LAN7801 USB3-to-RGMII MAC",          domain: SYS, bom: usb_mac}
-  D10:  {part: "PHY-side TVS array x2",              domain: SYS, bom: tvs_eth}
+  D10:  {part: "PHY-side TVS array, pairs A and B",  domain: SYS, bom: tvs_eth}
+  D11:  {part: "PHY-side TVS array, pairs C and D",  domain: SYS, bom: tvs_eth}
   # --- wiremap front end ----------------------------------------------------
   PROT1: {part: "8-line protection network",         domain: [LINE, SYS], bom: wiremap_prot}
   U30:  {part: "ADG5408 8:1 mux (drive)",            domain: SYS, bom: mux}
@@ -91,7 +92,7 @@ components:
 # Drawing sheets for tools/render_schematic.py (no electrical meaning).
 sheets:
   "Port A: jack, relays, PoE magnetics, protection": [J10, K1, K2, K3, K4, T1, PROT1]
-  "Test-port MAC and PHY, uplink port": [U11, U10, D10, J11]
+  "Test-port MAC and PHY, uplink port": [U11, U10, D10, D11, J11]
   "Wiremap front end": [U30, U31, U32, U33, U55]
   "PoE measurement island (isolated)": [D20, D21, D22, U21, U22, R20, Q20, U24, U25, U23, U20, PS1]
   "Processor module, display, debug pads": [M1, J1, J2, J41]
@@ -148,12 +149,13 @@ nets:
   # --- Port A PHY side ----------------------------------------------------------
   - {name: A_MDI_A, domain: SYS, nodes: [T1.PHY_A, U10.TXRX_A, D10.IO_A]}
   - {name: A_MDI_B, domain: SYS, nodes: [T1.PHY_B, U10.TXRX_B, D10.IO_B]}
-  - {name: A_MDI_C, domain: SYS, nodes: [T1.PHY_C, U10.TXRX_C, D10.IO_C]}
-  - {name: A_MDI_D, domain: SYS, nodes: [T1.PHY_D, U10.TXRX_D, D10.IO_D]}
+  - {name: A_MDI_C, domain: SYS, nodes: [T1.PHY_C, U10.TXRX_C, D11.IO_C]}
+  - {name: A_MDI_D, domain: SYS, nodes: [T1.PHY_D, U10.TXRX_D, D11.IO_D]}
   - {name: A_RGMII, domain: SYS, nodes: [U10.RGMII, U11.RGMII]}
   - {name: A_MDIO, domain: SYS, nodes: [U10.MDIO, U11.MDIO]}
   - {name: A_PHY_RST_N, domain: SYS, nodes: [U11.PHY_RESET_N, U10.RESET_N]}
   - {name: USB3_1, domain: SYS, nodes: [M1.USB3_0, U11.USB]}
+  - {name: LAN_NRST, domain: SYS, nodes: [M1.LAN_RESET, U11.RESET_N]}   # the SoM can reset the USB Ethernet bridge
   # --- PoE island ----------------------------------------------------------------
   - {name: CT_A, domain: POE, nodes: [T1.CT_A, D20.AC1, U23.AIN0_DIV]}
   - {name: CT_B, domain: POE, nodes: [T1.CT_B, D20.AC2, U23.AIN1_DIV]}
@@ -202,8 +204,8 @@ nets:
   - {name: -15V, domain: SYS, source: U55.VNEG, nodes: [U55.VNEG, U30.VSS, U31.VSS]}
   - {name: PWR_I2C, domain: SYS, nodes: [U40.I2C1, U50.I2C, U51.I2C]}
   - {name: CHG_INT, domain: SYS, nodes: [U50.INT, U51.ALRT, U40.PWR_IRQ]}
-  - {name: GND, domain: SYS, nodes: [M1.GND, U10.GND, U11.GND, U30.GND, U31.GND, U32.GND, U33.GND, U40.GND, U50.GND, U51.GND, U52.GND, U53.GND, U54.GND, U55.GND, BT1.MINUS, J20.GND, D10.GND, D30.GND, PROT1.CLAMP_RTN, PS1.VIN_N, U20.GND1, J1.GND, J2.GND, J40.GND, BZ1.GND, LED1.K, U60.GND, J30.GND, U70.GND, J32.GND_AND_CAGE]}
-  - {name: CHASSIS, domain: LINE, nodes: [J10.SHIELD, J11.SHIELD, T1.BOB_SMITH_HV_CAP]}
+  - {name: GND, domain: SYS, nodes: [M1.GND, U10.GND, U11.GND, U30.GND, U31.GND, U32.GND, U33.GND, U40.GND, U50.GND, U51.GND, U52.GND, U53.GND, U54.GND, U55.GND, BT1.MINUS, J20.GND, D10.GND, D11.GND, D30.GND, J11.SHIELD, PROT1.CLAMP_RTN, PS1.VIN_N, U20.GND1, J1.GND, J2.GND, J40.GND, BZ1.GND, LED1.K, U60.GND, J30.GND, U70.GND, J32.GND_AND_CAGE]}
+  - {name: CHASSIS, domain: LINE, nodes: [J10.SHIELD, T1.BOB_SMITH_HV_CAP]}   # test port only: floats with the cable side
   # --- options ----------------------------------------------------------------------
   - {name: USB3_2_HS, domain: SYS, nodes: [M1.USB3_1_D, U60.USB]}
   - {name: SD_BUS, domain: SYS, nodes: [U60.SD, J30.SD]}

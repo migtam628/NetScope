@@ -3,13 +3,13 @@ som,M1,1,"Compute Module 5, wireless, 2 GB RAM, 16 GB eMMC",Raspberry Pi,CM51020
 som_conn,J2 J3,2,"100-pin 0.4 mm board-to-board, CM5 mating half",Hirose,DF40C-100DS-0.4V(51),known,1.9,1.9,1.4,1.1,"none (defined by the module)","Mature part",no
 display,J1 J2,1,"5 in 720x1280 DSI capacitive touch display",Raspberry Pi,Touch Display 2 (5 inch),known,40,40,40,38,"Waveshare 5-DSI-TOUCH-B class panel (needs driver check)","Maker states production to at least Jan 2030: shortest-lived major part. Plan a second source before volume.",yes
 rj45_a,J10,1,"RJ45 8P8C shielded, THT, no magnetics",Amphenol,RJHSE-5380,candidate,2.5,2.5,1.8,1.4,"Any shielded 8P8C without magnetics with >= 1.5 A/contact","Commodity",yes
-magjack,J11,1,"RJ45 with integrated 1000BASE-T magnetics and LEDs",TBD,TBD,tbd,5.5,5.5,4.0,3.2,"Bel / Pulse / Wurth 1G MagJack; use the CM5 IO board part as the reference","Commodity; pick one stocked by two distributors",yes
+magjack,J11,1,"RJ45 with integrated 1000BASE-T magnetics and LEDs, tab down, about 16 x 22 mm",UDE,RB1-125B8G1A,candidate,5.5,5.5,4.0,3.2,"Wurth 7499111446; Pulse JK0654219NL (33 mm deep: does not fit the slot)","Commodity; pick one stocked by two distributors",yes
 relay,K1 K2 K3 K4,4,"DPDT signal relay, 3 V coil, non-latching, >= 1 A carry, low-capacitance contacts",Omron,G6K-2F-Y DC3,candidate,3.2,3.2,2.4,1.9,"Panasonic TQ2SA-3V; Kemet EC2-3NU","Mature. Must be characterised for gigabit return loss (see risks R-03).",yes
 magnetics_poe,T1,1,"1000BASE-T transformer module, 4 centre taps brought out, 802.3bt Type 4 current rating, 1500 Vrms",Wurth Elektronik,WE-LAN 4PPoE 1000BASE-T (7490220120 / 7490220123: confirm variant),candidate,6.0,6.0,4.2,3.2,"Pulse / Bel / Bourns 4PPoE-rated discrete gigabit transformer","Family is sold as 802.3bt 4PPoE but centre-tap ratings differ by variant (800 mA to 1000 mA seen). Type 4 needs about 960 mA per pair set: choose the variant from the datasheet current rating. Not yet done.",yes
 phy,U10,1,"Gigabit Ethernet PHY, RGMII, LinkMD cable diagnostics",Microchip,KSZ9131RNXI,known,4.2,4.2,3.4,2.9,"Analog Devices ADIN1300 (also has mainline cable test); Marvell 88E1512 (harder to buy)","Active part, mainline Linux driver with cable test",yes
 usb_mac,U11,1,"USB 3.1 Gen 1 to RGMII Ethernet MAC",Microchip,LAN7801-I/9JX,known,7.5,7.5,6.0,5.2,"Realtek RTL8153 (integrated PHY, no mainline cable test - loses TDR)","Active part, mainline lan78xx driver",yes
-xtal,Y1 Y2,2,"25 MHz crystal, 20 ppm",TBD,TBD,tbd,0.6,0.6,0.4,0.3,"any 25 MHz 3225 crystal meeting the PHY/MAC datasheet","Commodity",no
-tvs_eth,D10,2,"4-line low-capacitance TVS array, PHY side",Semtech,RClamp0524P,candidate,1.2,1.2,0.8,0.6,"TI TPD4E05U06; Littelfuse SP3012","Commodity",yes
+xtal,Y1 Y2,2,"25 MHz crystal, 3225, CL 10 pF, ESR <= 50 Ohm, +/-20 ppm",TBD,TBD,tbd,0.6,0.6,0.4,0.3,"any 25 MHz 3225 crystal meeting the PHY/MAC datasheet","Commodity",no
+tvs_eth,D10 D11,2,"4-line low-capacitance TVS array, PHY side (two pairs each)",Texas Instruments,TPD4E05U06DQAR,candidate,1.2,1.2,0.8,0.6,"Semtech RClamp0524P; Littelfuse SP3012","Commodity",yes
 wiremap_prot,PROT1,1,"8x (PTC resettable fuse + 2.2 k pulse resistor + bidirectional TVS)",various,TBD,tbd,4.0,4.0,2.8,2.0,"n/a","Passives",yes
 mux,U30 U31,2,"8:1 analog mux, +/-15 V, latch-up immune",Analog Devices,ADG5408BRUZ,known,9.5,9.5,7.5,6.2,"ADG1408 (not latch-up immune); TI MUX508","Active part",yes
 afe_opamp,U32,1,"Precision dual op-amp, RRIO, 36 V",Texas Instruments,OPA2192IDR,candidate,3.5,3.5,2.6,2.1,"ADA4522-2; OPA2189","Active part",yes
@@ -38,6 +38,7 @@ boost,U52,1,"10 A synchronous boost, VBAT to 5.1 V",Texas Instruments,TPS61088RH
 boost_l,L1,1,"Power inductor 1.5 uH, Isat >= 12 A, 7 x 7 mm",Coilcraft,XAL7030-152 (suffix to confirm),candidate,1.5,1.5,1.0,0.8,"Coilcraft XAL / Wurth WE-LHMI class","Commodity",no
 buck_aon,U53,1,"60 nA IQ buck, 3.3 V always-on",Texas Instruments,TPS62840DLCR,known,1.9,1.9,1.4,1.1,"TPS62A01 (higher IQ)","Active part",yes
 buck_3v3,U54,1,"2 A buck, 5 V to 3.3 V",Texas Instruments,TLV62569DBVR,known,0.7,0.7,0.45,0.3,"many pin-compatible SOT-23 bucks","Multi-source",yes
+buck_1v2,U12,1,"2 A buck, 3.3 V to 1.2 V PHY core (support part on the test-port sheet)",Texas Instruments,TLV62569DBVR,known,0.7,0.7,0.45,0.3,"many pin-compatible SOT-23 bucks","Multi-source",no
 bipolar,U55,1,"Split-rail DC/DC, 5 V to +/-15 V",Texas Instruments,TPS65131RGER,candidate,4.2,4.2,3.2,2.6,"Charge-pump doubler/inverter pair","Active part",yes
 sd_reader,U60,1,"USB 2.0 SD card reader controller (DNP option)",Microchip,USB2244,candidate,3.0,3.0,2.3,1.9,"Genesys GL823K","Option, not populated on rev A",yes
 sd_socket,J30,1,"microSD push-push socket (DNP option)",TBD,TBD,tbd,1.2,1.2,0.8,0.6,"Molex / Hirose DM3","Option",yes

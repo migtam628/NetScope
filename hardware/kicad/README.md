@@ -6,17 +6,17 @@ Three KiCad 9 projects, at three different levels of completeness. Read the stat
 |---|---|---|
 | `netscope-x1-lower/` | Lower board: keys, status LEDs, buzzer, USB-C | **Real capture, routed, rule-checked.** Gerbers exported. Not fabricated |
 | `../remote-terminator/kicad/rt-1/` | RT-1 remote terminator | **Real capture, routed, rule-checked.** Gerbers exported. Not fabricated |
-| `netscope-x1/` | Main board | **Three of nine sheets captured for real** (processor module with display cable; coprocessor with the cables to the lower board; power). The other six are block level. Board file: outline, placement guides, footprints of the captured sheets. Not routed |
+| `netscope-x1/` | Main board | **Four of nine sheets captured for real** (test-port Ethernet and uplink jack; processor module with display cable; coprocessor with the cables to the lower board; power). The other five are block level. Board file: outline, placement guides, footprints of the captured sheets. Not routed |
 
 ## Why the main board is not at the same level yet
 
 A pin-accurate main-board schematic cannot be completed honestly today, for three specific reasons:
 
 1. **The fiber controller's pinout is not public.** Marvell publishes a product brief for the AQC100 and supplies the datasheet under NDA. Without it the fiber sheet cannot be captured. Either the datasheet is obtained through a distributor, or the design changes to a part or module with public documentation.
-2. **Fourteen BOM lines are still "tbd"** (`../bom/bom.csv`), among them the PoE magnetics. A part that has not been chosen has no pins to draw.
+2. **Thirteen BOM lines are still "tbd"** (`../bom/bom.csv`), among them the PoE magnetics. A part that has not been chosen has no pins to draw.
 3. **The bench kit has not been run** (`docs/15-dev-kit-spike.md`). It decides whether the test-port MAC/PHY pair and the fiber controller work at all on this platform.
 
-Everything not blocked by those three can be captured now, sheet by sheet: coprocessor, power, wiremap front end, Port A relays and jack, the PoE measurement island and the board-to-board connectors.
+Everything not blocked by those three can be captured now, sheet by sheet: the wiremap front end, Port A relays and jack, the PoE measurement island and the microSD reader. The coprocessor, power, processor and test-port sheets are done.
 
 Routing is a separate limit. The lower board and the RT-1 were routed by script with the project's own grid router (`tools/gridrouter.py`), which is adequate for low-speed two-layer boards. It does no impedance control, length matching or differential-pair routing, so it is **not** adequate for the main board's 10 Gb serial link, PCIe, USB 3 and RGMII. Those need interactive layout by someone with the tools and experience for it.
 
@@ -118,12 +118,36 @@ Open on this sheet:
 - **M1 has no footprint.** It is two Hirose DF40C-100DS-0.4V receptacles and four mounting holes at an exact spacing; that should be taken from Raspberry Pi's published design files, not re-drawn from a dimension read off a PDF. KiCad's library does have the single receptacle.
 - **J2 (display 5 V lead) has no footprint**: it depends on the lead supplied with the display.
 - **Written from memory, to be verified before layout:** the 22-way display pin order; that touch I2C belongs on SCL0/SDA0 for this display port; and which GPIO pairs carry UART0 and UART2.
-- Not checked in the data sheet: the voltage limit of the RTC supply pin (tied to the always-on 3.3 V), and whether the module already has pull-ups on GPIO2/3.
+- Closed from the CM5 data sheet: the RTC input accepts 2.5 to 3.5 V, so the always-on 3.3 V rail is within range; GPIO2/3 already have 1.8 k pull-ups on the module, so the two SFP bus pull-ups (R81, R82) were removed.
+- GPIO6 now drives LAN_NRST, the reset of the test port's USB Ethernet bridge (new block net).
 - The display connector is a 1 mm-class Amphenol part chosen because the front of the board has 1.5 mm; its exact part number, height and contact side are candidates.
+
+**Captured for real: sheet 02, test-port Ethernet and uplink jack** (`tools/main_sheets.py`). LAN7801 USB 3 to RGMII bridge (U11) on the module's USB 3 port 0, KSZ9131RNX gigabit PHY (U10) whose MDI pairs go to the Port A magnetics on sheet 01, two TVS arrays on those pairs (D10, D11), a 1.2 V buck for the PHY core (U12), two 25 MHz crystals, and the uplink MagJack (J11) on the module's own Ethernet. 97 parts.
+
+The two Microchip parts have no KiCad symbol; their box symbols carry pin numbers from the data sheets read as text, to be compared with the PDFs by eye. Support parts follow Microchip's LAN7801 schematic checklist (supply decoupling, 3.3 uH / 22 uF for the internal 1.2 V switcher, ferrite-fed analogue 1.2 V, 12.0 k USB bias, 2.00 k and 1.0 uF references, 1.5 k MDIO pull-up, 10 k JTAG pull-ups, TEST to ground, pin 34 left open, DUPLEX tied high). The PHY straps are external 10 k resistors because the data sheet says the straps have no internal resistors: MODE 1110 (RGMII, advertise 1000 full and 10/100), PHY address 001, no 125 MHz output.
+
+Design decisions made on this sheet:
+
+- **USB 3 coupling capacitors only on the bridge's transmit pair.** The CM5 data sheet says the module already has them on its own transmit pair.
+- **RGMII delays come from the PHY**, not from trace length: the Linux lan78xx driver asks the PHY driver for internal delays and turns off its own.
+- **The PHY core gets its own buck (U12, 3.3 V to 1.2 V)** instead of the PHY's LDO controller with an external transistor: the core draws 220 mA at 1000BASE-T, which would put about 0.45 W in a linear pass transistor. Its enable is delayed by an R/C so the core comes up after 3.3 V, as the data sheet recommends.
+- **The bridge's reset is on a module GPIO** (pulled up, so it starts on its own), because the checklist recommends a hardware reset and advises against an R/C reset.
+- **The uplink jack is the UDE RB1-125B8G1A** (gigabit, LEDs, about 16 x 22 mm, KiCad symbol and footprint). The first pick, Pulse JK0654219NL, is 33 mm deep and does not fit the 21.5 mm slot. The floorplan moved J11 so its LED pins clear the board edge (front 4 mm past the edge instead of 6.5 mm), and U54 moved 2 mm to make room.
+- **The uplink jack's shield is on system ground, not the floating CHASSIS net.** DRC showed why: the jack's internal 2 kV termination capacitor returns on pin R10, which the maker placed 0.64 mm from the PHY-side pins, so the jack is designed for that pin to be at board ground. The uplink is an ordinary LAN port, like a laptop's; the floating chassis stays on the test port (J10) only.
+- D10 became two parts (D10, D11) in the block netlist, one TPD4E05U06 per two pairs.
+
+Open on this sheet (the checker lists the footprint items):
+
+- **Footprints to confirm:** the exposed-pad sizes of U11 (64-SQFN 9 x 9) and U10 (48-QFN 7 x 7) were not in the data sheet text; KiCad footprints with 7.15 mm and 5.6 mm pads are placeholders. J11's LED anode/cathode pins come from the KiCad symbol's drawing, as the maker's spec text gives no polarity.
+- **Starting values, not from a Microchip document:** RGMII series resistors (10 R), the PHY's decoupling, crystal load capacitors (15 pF for a 10 pF-load crystal with about 3 pF stray).
+- **Assumed:** the ALLPHYAD strap's polarity (pull-up = 1, by analogy with the other straps).
+- **Bench checks:** the PHY needs 10 ms of stable supply before its reset is released, and the release comes from the bridge; no EEPROM, so the test port's MAC address is set by software.
+- The Port A magnetics (T1, sheet 01) need a 100 nF capacitor per centre tap for the KSZ9131, to be drawn when sheet 01 is captured.
+- **Housing:** J11's front now sits 2.5 mm behind the inside of the top end wall (it was flush), so the plug passes through about 8 mm of wall and bumper. Check a booted plug in the printed housing; if it binds, move the board or deepen the opening. J10 should line up with J11 when sheet 01 is captured.
 
 The old processor sheet was split so this could be captured: the fiber port (U70, J32) and the optional microSD reader (U60, J30) are now their own block sheets, 08 and 09.
 
-**Block level: the other six sheets.**
+**Block level: the other five sheets.**
 
 On those sheets the project is a block diagram in KiCad form, not schematic capture. It puts the checked block netlist into KiCad so that capture can go sheet by sheet in a project that already has the reference designators, net names, electrical domains and isolation rules in place. Nothing in the main-board project can be sent to a fabricator.
 
@@ -131,52 +155,49 @@ On those sheets the project is a block diagram in KiCad form, not schematic capt
 
 | File | What it is | How it was made |
 |---|---|---|
-| `netscope-x1.kicad_sch` + `01_…` to `07_….kicad_sch` | Root sheet and seven hierarchical sheets, 47 parts, 100 nets | Generated by `tools/gen_kicad.py` from `../netlist/netscope-x1.yaml` |
-| `netscope-x1.kicad_sym` | Project-local library, one block symbol per part | Generated |
+| `netscope-x1.kicad_sch` + `01_…` to `09_….kicad_sch` | Root sheet and nine hierarchical sheets: four captured for real (183 parts with real pins and footprints, except the open items above) and five block level (28 parts) | Generated by `tools/gen_kicad.py`: block sheets from `../netlist/netscope-x1.yaml`, captured sheets from the builders in `tools/main_sheets.py` |
+| `netscope-x1.kicad_sym` | Project-local library: block symbols, plus box symbols with data-sheet pin numbers for parts KiCad's library lacks | Generated |
 | `netscope-x1.kicad_pro` | Project settings. Net classes `LINE`, `POE`, `SYS` and one assignment per net | Net-class section generated; everything else is KiCad's and is kept on regeneration |
 | `netscope-x1.kicad_dru` | Custom rules: 2.5 mm between nets of different domains | Generated from `rules.isolation` in `../pcb/floorplan.yaml` |
-| `netscope-x1.kicad_pcb` | Board outline (88 x 88 mm plus microSD tab), four M2.5 mounting holes, and every floorplan part as a labelled rectangle on `Dwgs.User` (front) or `Cmts.User` (back) | Seeded once by `tools/seed_kicad_pcb.py` with KiCad's own Python API; edited by hand from here on |
-| `../netscope-x1-kicad-schematic.pdf` | The eight sheets as KiCad plots them | `kicad-cli sch export pdf` |
+| `netscope-x1.kicad_pcb` | Outline (88 x 88 mm plus microSD tab), mounting holes, a labelled rectangle for every block-level part, and the real footprints of the captured sheets: those with a floorplan position are placed there, the rest are parked beside the board | `tools/seed_kicad_pcb.py --force`, re-run after each capture while the board is unrouted |
 
 ## What was checked, and with what
 
 Run `python tools/check_kicad.py` (needs KiCad 9 on the path). With KiCad 9.0.9 it reports:
 
-- **ERC:** 8 sheets, 0 violations at every severity.
-- **Netlist:** KiCad's exported netlist has the same 47 parts, 100 nets and 300 pins as the YAML netlist, pin for pin.
-- **Net classes:** every net carries the class of its domain (156 net-on-sheet assignments).
-- **DRC on the board file:** 0 violations. This covers the outline and the mounting holes only.
+- **ERC:** 10 sheets, 0 violations at every severity. 34 nets end at a block sheet that is not captured yet; only nets explained by the block netlist are accepted as such.
+- **Block sheets:** KiCad's netlist equals the YAML netlist for the 28 block-level parts, pin for pin.
+- **Captured sheets:** every block net of every captured part is implemented at pin level, and no part touches a block net the block netlist does not give it (exceptions are listed with a reason); coprocessor pin functions against the library's alternate-function list; module pins and the polarity of 15 differential pairs; hold-off resistors; both cable pin tables; and the open items (parts without footprints, footprints to confirm, values not chosen) must match the lists in `tools/main_sheets.py`.
+- **Net classes:** every net carries the class of its domain, sheet by sheet (330 assignments).
+- **DRC on the board file:** 0 violations, besides the cable connectors' accepted edge overhang and silkscreen warnings left for layout. The board is not routed: open connections are counted, not failed.
 - **Isolation rules:** on a scratch board, a 1.0 mm gap between LINE and SYS, POE and SYS, and LINE and POE tracks is flagged by the matching rule, and two LINE tracks 0.4 mm apart are not.
 
-The checker was itself tested by breaking things on purpose: a mis-named label fails the netlist comparison, and a rules file with a syntax error fails the isolation probe (`kicad-cli` ignores a rules file it cannot parse without saying so, which is why the probe exists).
+The checker was itself tested by breaking things on purpose: a mis-named label fails the netlist comparison, a moved MCU pin fails the pin-function check, and a rules file with a syntax error fails the isolation probe (`kicad-cli` ignores a rules file it cannot parse without saying so, which is why the probe exists).
 
 ## What a pass does not mean
 
-- **Pins are functions, not package pins.** `U10.RGMII` is one pin standing for twelve signals. Pin numbers are placeholders (1, 2, 3 … in netlist order). No symbol has been compared with a datasheet.
-- **ERC is weak here.** It only sees the pin types the generator assigned: the declared source of a supply net is a power output, its loads are power inputs, everything else is passive. It proves each supply net has exactly one declared source and nothing is left unconnected. It cannot catch a wrong voltage, a swapped pair or a missing pull-up.
-- **No footprints** are assigned, so there is nothing to place or route, and schematic-to-board parity is not checked.
-- **No application circuits.** Decoupling, straps, crystals' load capacitors, compensation networks, pull-ups, test points and ESD parts beyond the block-level ones are absent.
-- **The board file is an outline with guides.** The rectangles are approximate part envelopes from the floorplan. The 6-layer stack-up is KiCad's default, not the one in `docs/11-pcb-design-guide.md`.
+- **Block sheets are function-level.** Their pins stand for functions, often several signals each, and carry placeholder numbers.
+- **Data-sheet pin tables were read as text.** The box symbols for parts without a KiCad symbol (TPS61088, TPS62840, MAX17055, CM5, LAN7801, KSZ9131RNX) must be compared with the PDFs by eye.
+- **ERC only sees pin types.** It cannot catch a wrong voltage, a wrong value or a misread data sheet.
+- **The board is not laid out.** Footprints of captured sheets are placed or parked, nothing is routed, and the 6-layer stack-up is KiCad's default, not the one in `docs/11-pcb-design-guide.md`.
 - **2.5 mm is a design value**, not a safety rating. Creepage and clearance across the PoE barrier need a review against the applicable standard before layout.
-- The lower board's parts still appear on these block sheets, because the block netlist covers the whole instrument. Their real schematic is the lower-board project above.
+- The lower board's parts still appear on the block sheets, because the block netlist covers the whole instrument. Their real schematic is the lower-board project above.
 
-## How to go from here to real capture
+## How to capture the next sheet
 
-Work one sheet at a time, only after the bench kit in `docs/15-dev-kit-spike.md` has confirmed the part choices on that sheet:
-
-1. Replace each block symbol with the real part's symbol (KiCad library or drawn from the datasheet), keeping the reference designator.
-2. Split bundle nets into real signals (`A_MDI_A` into `A_MDI_A_P` / `A_MDI_A_N`, `RGMII` into its twelve lines) and add the application circuit from the datasheet.
-3. Assign footprints, then check each against the manufacturer's land pattern.
-4. From that point the sheet is hand-maintained. Stop regenerating it: `tools/gen_kicad.py` overwrites the schematic sheets and the symbol library. Keep `tools/check_netlist.py` rules true by exporting KiCad's netlist and checking domains and barriers against it.
+1. Write a builder in `tools/main_sheets.py`: real symbols (KiCad library, or `box_symbol` with pin numbers from the data sheet), every pin given a net or an explicit no-connect, footprints, and the application circuit.
+2. Declare in `REFINES` how each pin-level net implements a block net (or is local), and list anything not yet decided in `NO_FOOTPRINT`, `OPEN_VALUES` or `FOOTPRINT_TO_CONFIRM`.
+3. Register the sheet in `CAPTURED`, run `tools/gen_kicad.py`, `tools/seed_kicad_pcb.py --force`, `tools/gen_kicad.py` again, then `tools/check_kicad.py`.
+4. Fix what the checker and DRC find in the design, not in the checker.
 
 ## Regenerating
 
 ```
 python tools/gen_kicad.py          # schematic sheets, symbol library, net classes, rules file
 python tools/check_kicad.py        # ERC, netlist comparison, net classes, DRC, isolation probe
-python3 tools/seed_kicad_pcb.py    # board file; refuses to overwrite without --force
+python3 tools/seed_kicad_pcb.py --force   # board file (only while it is unrouted)
 ```
 
-Edit the YAML netlist, not the generated sheets. CI regenerates the schematic and fails if the committed files differ, then runs the checker.
+Edit the YAML netlist and `tools/main_sheets.py`, not the generated sheets. CI regenerates the schematic and fails if the committed files differ, then runs the checker.
 
 Conventions kept from the block netlist: KiCad 9 or later; one hierarchical sheet per block; project-local libraries committed to the repository; reference designators and net names as in the netlist.

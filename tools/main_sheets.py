@@ -5,8 +5,8 @@ for every sheet named in CAPTURED.  Each builder also declares how its
 pin-level nets refine the block netlist, so tools/check_kicad.py can prove the
 real sheet still implements the block design.
 
-Captured so far: the coprocessor sheet (U40, its support parts, the SWD pads
-and the two cables to the lower board).
+Captured so far: test-port Ethernet (LAN7801, KSZ9131RNX, uplink MagJack),
+processor module, coprocessor, power.
 """
 from __future__ import annotations
 
@@ -327,7 +327,7 @@ M1_NETS = {
     "Ethernet_nLED2": "B_LED2", "Ethernet_nLED3": "B_LED3",
     "GPIO14": "SOM_UART_DBG_TX", "GPIO15": "SOM_UART_DBG_RX",        # UART0: console
     "GPIO4": "COPROC_UART_RX", "GPIO5": "COPROC_UART_TX",            # UART2: SoM transmits on GPIO4 into the MCU's RX
-    "GPIO22": "COPROC_BOOT0", "GPIO23": "COPROC_NRST",
+    "GPIO22": "COPROC_BOOT0", "GPIO23": "COPROC_NRST", "GPIO6": "LAN_NRST",
     "GPIO2": "SFP_SDA", "GPIO3": "SFP_SCL",
     "GPIO16": "SFP_LOS", "GPIO17": "SFP_MOD_ABS", "GPIO26": "SFP_TX_FAULT", "GPIO27": "SFP_TX_DISABLE",
     "nRPIBOOT": "SOM_NRPIBOOT", "SCL0": "TOUCH_SCL", "SDA0": "TOUCH_SDA",
@@ -388,12 +388,11 @@ def build_processor(s: Sheet) -> None:
     _row(s, 35.56, 83.82, [
         ("C90", C, "22u 10V", C1206, "+5V", "GND"), ("C91", C, "22u 10V", C1206, "+5V", "GND"),
         ("C92", C, "100n", C0402, "+5V", "GND"), ("C93", C, "100n", C0402, "SOM_3V3", "GND"),
-        ("R80", R, "10k", R0402, "SOM_3V3", "SOM_RUN"), ("R81", R, "10k", R0402, "SOM_3V3", "SFP_SCL"),
-        ("R82", R, "10k", R0402, "SOM_3V3", "SFP_SDA")])
+        ("R80", R, "10k", R0402, "SOM_3V3", "SOM_RUN")])
     for i, line in enumerate((
-            "R80 lets the always-on coprocessor see the module's 3.3 V without back-feeding it. R81/R82 are weak I2C pull-ups for the",
-            "SFP bus; whether the module already pulls GPIO2/3 up has not been checked. RTC supply (VBAT) is tied to +3V3_AON: the",
-            "pin's voltage limit must be confirmed in the data sheet. USB_OTG_ID, PWR_Button and PMIC_Enable are left open.",
+            "R80 lets the always-on coprocessor see the module's 3.3 V without back-feeding it. The SFP I2C bus (GPIO2/3) needs no",
+            "pull-ups here: the data sheet gives the module 1.8k pull-ups on both. RTC input (VBAT, 2.5-3.5 V per the data sheet) is",
+            "tied to +3V3_AON. GPIO6 resets the USB Ethernet bridge (LAN_NRST). USB_OTG_ID, PWR_Button, PMIC_Enable left open.",
             "UART numbering (UART0 on GPIO14/15, UART2 on GPIO4/5) is from memory of the Pi 5 device tree: verify before layout.")):
         s.text(line, (25.4, 106.68 + i * 4.445), 1.5)
 
@@ -418,7 +417,221 @@ def build_processor(s: Sheet) -> None:
            ref_at=(63.5, 279.4), value_at=(63.5, 302.26))
 
 
+# ---- test-port Ethernet sheet ---------------------------------------------------------------------
+# LAN7801 (USB 3 to RGMII MAC) and KSZ9131RNX (gigabit PHY) have no KiCad symbols: pins from Microchip's
+# data sheets (LAN7801 DS00002123, KSZ9131RNX DS00002841), read as text.  Support parts follow Microchip's
+# LAN7801 schematic checklist; values the documents do not give are marked as starting values on the sheet.
+LAN7801 = [(n, name, t, "L") for n, name, t in (
+    ("1", "REF_REXT", "passive"), ("2", "REF_FILT", "passive"), ("49", "USBRBIAS", "passive"), ("52", "XI", "input"),
+    ("53", "XO", "output"), ("38", "USB2_DP", "bidirectional"), ("39", "USB2_DM", "bidirectional"),
+    ("40", "USB3_TXDP", "output"), ("41", "USB3_TXDM", "output"), ("43", "USB3_RXDP", "input"), ("44", "USB3_RXDM", "input"),
+    ("29", "VBUS_DET", "input"), ("47", "RESET_N", "input"), ("46", "TEST", "input"), ("57", "TDI/GPIO7", "input"),
+    ("58", "TCK/GPIO8", "input"), ("59", "TMS/GPIO9", "input"), ("60", "TDO/GPIO10", "output"), ("23", "EECS/GPIO0", "output"),
+    ("24", "EEDI/GPIO1", "input"), ("25", "EEDO/GPIO2", "output"), ("26", "EECLK/GPIO3", "output"),
+    ("35", "GPIO4", "bidirectional"), ("36", "PME_MODE/GPIO5", "bidirectional"), ("45", "PME_N/GPIO6", "bidirectional"),
+    ("30", "SUSPEND_N", "output"), ("61", "REFCLK_25/GPIO11", "output"), ("34", "NC", "no_connect"),
+    ("37", "VDD12A", "power_in"), ("42", "VDD12A", "power_in"), ("62", "VDD12A", "power_in"), ("65", "VSS", "power_in"))]
+LAN7801 += [(n, name, t, "R") for n, name, t in (
+    ("4", "TXD3", "output"), ("5", "TXD2", "output"), ("6", "TXD1", "output"), ("8", "TXD0", "output"),
+    ("9", "TX_CTL", "output"), ("10", "TXC", "output"), ("12", "RXC", "input"), ("13", "RX_CTL", "input"),
+    ("14", "RXD0", "input"), ("15", "RXD1", "input"), ("16", "RXD2", "input"), ("17", "RXD3", "input"),
+    ("19", "CLK125", "passive"), ("31", "PHY_INT_N", "input"), ("32", "PHY_RESET_N", "output"), ("33", "DUPLEX", "input"),
+    ("55", "MDIO", "bidirectional"), ("56", "MDC", "output"),
+    *[(n, "VDDVARIO", "power_in") for n in ("3", "7", "11", "18", "27", "48", "51")],
+    ("50", "VDD33A", "power_in"), ("64", "VDD33_REG_IN", "power_in"), ("21", "VDD_SW_IN", "power_in"),
+    ("63", "VDD25_REG_OUT", "power_out"), ("20", "VDD12_SW_OUT", "power_out"), ("22", "VDD12_SW_FB", "input"),
+    ("28", "VDD12CORE", "power_in"), ("54", "VDD12CORE", "power_in"))]
+KSZ9131 = [(n, name, t, "L") for n, name, t in (
+    ("2", "TXRXP_A", "bidirectional"), ("3", "TXRXM_A", "bidirectional"), ("5", "TXRXP_B", "bidirectional"),
+    ("6", "TXRXM_B", "bidirectional"), ("7", "TXRXP_C", "bidirectional"), ("8", "TXRXM_C", "bidirectional"),
+    ("10", "TXRXP_D", "bidirectional"), ("11", "TXRXM_D", "bidirectional"), ("46", "XI", "input"), ("45", "XO", "output"),
+    ("48", "ISET", "passive"), ("42", "RESET_N", "input"), ("43", "LDO_O", "output"), ("15", "LED2/PHYAD1", "bidirectional"),
+    ("17", "LED1/PHYAD0", "bidirectional"), ("41", "CLK125_NDO/LED_MODE", "bidirectional"),
+    ("38", "INT_N/ALLPHYAD", "bidirectional"), ("13", "NC", "no_connect"), ("14", "NC", "no_connect"), ("47", "NC", "no_connect"),
+    ("1", "AVDDH", "power_in"), ("12", "AVDDH", "power_in"), ("4", "AVDDL", "power_in"), ("9", "AVDDL", "power_in"),
+    ("44", "AVDDL_PLL", "power_in"))]
+KSZ9131 += [(n, name, t, "R") for n, name, t in (
+    ("19", "TXD0", "input"), ("20", "TXD1", "input"), ("21", "TXD2", "input"), ("22", "TXD3", "input"), ("24", "TXC", "input"),
+    ("25", "TX_CTL", "input"), ("32", "RXD0/MODE0", "bidirectional"), ("31", "RXD1/MODE1", "bidirectional"),
+    ("28", "RXD2/MODE2", "bidirectional"), ("27", "RXD3/MODE3", "bidirectional"), ("33", "RX_CTL/CLK125_EN", "bidirectional"),
+    ("35", "RXC/PHYAD2", "bidirectional"), ("36", "MDC", "input"), ("37", "MDIO", "bidirectional"),
+    *[(n, "DVDDH", "power_in") for n in ("16", "34", "40")], *[(n, "DVDDL", "power_in") for n in ("18", "23", "26", "30", "39")],
+    ("29", "VSS", "power_in"), ("49", "EP", "power_in"))]
+RGMII_TX = ("TXD0", "TXD1", "TXD2", "TXD3", "TX_CTL", "TXC")        # MAC drives, PHY receives
+RGMII_RX = ("RXD0", "RXD1", "RXD2", "RXD3", "RX_CTL", "RXC")        # PHY drives, MAC receives
+# KSZ9131 strap resistors (10k, to DVDDH = +3V3 or to ground), sampled when RESET_N rises.
+#   MODE[3:0] = 1110: RGMII, advertise 1000BASE-T full duplex and 10/100 half/full duplex
+#   PHYAD[2:0] = 001; CLK125_EN = 0 (no 125 MHz output); LED_MODE = 1; ALLPHYAD = 1 (no broadcast address 0, assumed polarity)
+PHY_STRAPS = {"A_RXD3_PHY": "+3V3", "A_RXD2_PHY": "+3V3", "A_RXD1_PHY": "+3V3", "A_RXD0_PHY": "GND",
+              "A_RX_CTL_PHY": "GND", "A_RXC_PHY": "GND", "PHY_LED2": "GND", "PHY_LED1": "+3V3",
+              "PHY_LED_MODE": "+3V3", "A_PHY_INT_N": "+3V3"}
+# Parts that have a footprint, but one that must be checked against the maker's drawing before layout.
+FOOTPRINT_TO_CONFIRM = {
+    "U11": "LAN7801 64-SQFN 9 x 9 mm: the exposed-pad size was not in the data sheet text; KiCad's 7.15 mm pad is a placeholder",
+    "U10": "KSZ9131RNX 48-QFN 7 x 7 mm: exposed-pad size to be taken from Microchip's package drawing; 5.6 mm pad is a placeholder",
+    "J11": "UDE RB1-125B8G1A: LED anode/cathode pins taken from the KiCad symbol's drawing (green L3/L4, yellow L1/L2); "
+           "the maker's spec text gives no polarity. Confirm from UDE's drawing"}
+REFINES.update({
+    **{f"A_{sig}{end}": ("A_RGMII",) for sig in RGMII_TX for end in ("_MAC", "")},
+    **{f"A_{sig}{end}": ("A_RGMII",) for sig in RGMII_RX for end in ("_PHY", "")},
+    "A_MDC": ("A_MDIO",), "A_PHY_INT_N": ("A_MDIO",),     # the PHY interrupt travels with the management bus
+    **{f"A_MDI_{x}_{p}": (f"A_MDI_{x}",) for x in "ABCD" for p in "PN"},
+    "LAN_SSTX_P": ("USB3_1",), "LAN_SSTX_N": ("USB3_1",),
+    **{n: () for n in ("LAN_SW", "LAN_1V2", "LAN_1V2A", "LAN_2V5", "LAN_REXT", "LAN_FILT", "LAN_RBIAS", "LAN_XI", "LAN_XO",
+                       "LAN_VBUS_DET", "LAN_CLK125", "LAN_EEDI", "LAN_TDI", "LAN_TCK", "LAN_TMS", "PHY_XI", "PHY_XO",
+                       "PHY_ISET", "PHY_LED1", "PHY_LED2", "PHY_LED_MODE", "PHY_1V2", "PHY_1V2A", "PHY_1V2PLL", "PHY_1V2_SW",
+                       "PHY_1V2_FB", "PHY_1V2_EN", "B_CT", "B_LED2_A", "B_LED3_A")},
+})
+
+
+def build_test_port(s: Sheet) -> None:
+    s.paper = "A1"
+    C, R, FB, L = "Device:C", "Device:R", "Device:FerriteBead", "Device:L"
+    F0603 = "Inductor_SMD:L_0603_1608Metric"
+    box_symbol("netscope-x1:LAN7801", LAN7801, "USB 3.1 Gen 1 to RGMII Ethernet MAC, 64-SQFN 9x9 (pins from Microchip DS00002123)")
+    box_symbol("netscope-x1:KSZ9131RNX", KSZ9131, "Gigabit Ethernet PHY, RGMII, 48-QFN 7x7 (pins from Microchip DS00002841)")
+    s.text("Test port Ethernet (LAN7801 + KSZ9131RNX on the CM5's USB 3 port 0) and the uplink jack. Sheet captured for real.",
+           (25.4, 25.4), 2.5)
+    s.text("UNTESTED. Pins are from the data sheets read as text. Values marked 'starting value' are not from a Microchip document.",
+           (25.4, 33.02), 1.8)
+
+    # ---- U11: USB 3 to RGMII bridge ----
+    s.text("U11 LAN7801: USB 3 device on the module's USB 3 port 0; RGMII to the PHY", (101.6, 88.9))
+    rgmii_mac = {**{f"{sig}": f"A_{sig}_MAC" for sig in RGMII_TX}, **{f"{sig}": f"A_{sig}" for sig in RGMII_RX}}
+    lan = {"REF_REXT": "LAN_REXT", "REF_FILT": "LAN_FILT", "USBRBIAS": "LAN_RBIAS", "XI": "LAN_XI", "XO": "LAN_XO",
+           "USB2_DP": "USB3A_DP", "USB2_DM": "USB3A_DM", "USB3_TXDP": "LAN_SSTX_P", "USB3_TXDM": "LAN_SSTX_N",
+           "USB3_RXDP": "USB3A_TX_P", "USB3_RXDM": "USB3A_TX_N",        # the module transmits into our receiver
+           "VBUS_DET": "LAN_VBUS_DET", "RESET_N": "LAN_NRST", "TEST": "GND", "TDI/GPIO7": "LAN_TDI", "TCK/GPIO8": "LAN_TCK",
+           "TMS/GPIO9": "LAN_TMS", "TDO/GPIO10": None, "EECS/GPIO0": None, "EEDI/GPIO1": "LAN_EEDI", "EEDO/GPIO2": None,
+           "EECLK/GPIO3": None, "GPIO4": None, "PME_MODE/GPIO5": None, "PME_N/GPIO6": None, "SUSPEND_N": None,
+           "REFCLK_25/GPIO11": None, "NC": None, "VDD12A": "LAN_1V2A", "VSS": "GND", **rgmii_mac,
+           "CLK125": "LAN_CLK125", "PHY_INT_N": "A_PHY_INT_N", "PHY_RESET_N": "A_PHY_RST_N", "DUPLEX": "+3V3",
+           "MDIO": "A_MDIO", "MDC": "A_MDC", "VDDVARIO": "+3V3", "VDD33A": "+3V3", "VDD33_REG_IN": "+3V3", "VDD_SW_IN": "+3V3",
+           "VDD25_REG_OUT": "LAN_2V5", "VDD12_SW_OUT": "LAN_SW", "VDD12_SW_FB": "LAN_1V2", "VDD12CORE": "LAN_1V2"}
+    s.part("netscope-x1:LAN7801", "U11", "LAN7801-I/9JX", (165.1, 157.48), {n: lan[name] for n, name, _, _ in LAN7801},
+           "Package_DFN_QFN:QFN-64-1EP_9x9mm_P0.5mm_EP7.15x7.15mm",
+           {"Manufacturer": "Microchip", "MPN": "LAN7801-I/9JX"}, ref_at=(144.78, 106.68), value_at=(144.78, 109.22))
+    s.part("Device:Crystal_GND24", "Y1", "25 MHz", (165.1, 233.68), {"1": "LAN_XI", "3": "LAN_XO", "2": "GND", "4": "GND"},
+           "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm", ref_at=(165.1, 226.06), value_at=(172.72, 226.06))
+
+    # ---- U10: gigabit PHY ----
+    s.text("U10 KSZ9131RNX: 1000BASE-T PHY for the test port, MDI to the Port A magnetics (T1)", (378.46, 88.9))
+    phy = {"TXRXP_A": "A_MDI_A_P", "TXRXM_A": "A_MDI_A_N", "TXRXP_B": "A_MDI_B_P", "TXRXM_B": "A_MDI_B_N",
+           "TXRXP_C": "A_MDI_C_P", "TXRXM_C": "A_MDI_C_N", "TXRXP_D": "A_MDI_D_P", "TXRXM_D": "A_MDI_D_N",
+           "XI": "PHY_XI", "XO": "PHY_XO", "ISET": "PHY_ISET", "RESET_N": "A_PHY_RST_N", "LDO_O": None,
+           "LED2/PHYAD1": "PHY_LED2", "LED1/PHYAD0": "PHY_LED1", "CLK125_NDO/LED_MODE": "PHY_LED_MODE",
+           "INT_N/ALLPHYAD": "A_PHY_INT_N", "NC": None, "AVDDH": "+3V3", "AVDDL": "PHY_1V2A", "AVDDL_PLL": "PHY_1V2PLL",
+           **{sig: f"A_{sig}" for sig in RGMII_TX},
+           "RXD0/MODE0": "A_RXD0_PHY", "RXD1/MODE1": "A_RXD1_PHY", "RXD2/MODE2": "A_RXD2_PHY", "RXD3/MODE3": "A_RXD3_PHY",
+           "RX_CTL/CLK125_EN": "A_RX_CTL_PHY", "RXC/PHYAD2": "A_RXC_PHY", "MDC": "A_MDC", "MDIO": "A_MDIO",
+           "DVDDH": "+3V3", "DVDDL": "PHY_1V2", "VSS": "GND", "EP": "GND"}
+    s.part("netscope-x1:KSZ9131RNX", "U10", "KSZ9131RNXI", (444.5, 152.4), {n: phy[name] for n, name, _, _ in KSZ9131},
+           "Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm_EP5.6x5.6mm",
+           {"Manufacturer": "Microchip", "MPN": "KSZ9131RNXI"}, ref_at=(419.1, 114.3), value_at=(419.1, 116.84))
+    s.part("Device:Crystal_GND24", "Y2", "25 MHz", (444.5, 233.68), {"1": "PHY_XI", "3": "PHY_XO", "2": "GND", "4": "GND"},
+           "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm", ref_at=(444.5, 226.06), value_at=(452.12, 226.06))
+
+    # ---- PHY-side protection ----
+    s.text("D10, D11: TVS arrays on the PHY side of T1, one per two pairs", (548.64, 215.9))
+    for ref, x, (a, b) in (("D10", 571.5, "AB"), ("D11", 627.38, "CD")):
+        s.part("Power_Protection:TPD4E05U06DQA", ref, "TPD4E05U06DQA", (x, 241.3),
+               {"1": f"A_MDI_{a}_P", "2": f"A_MDI_{a}_N", "4": f"A_MDI_{b}_P", "5": f"A_MDI_{b}_N", "3": "GND", "8": "GND",
+                **{n: None for n in ("6", "7", "9", "10")}}, "Package_SON:USON-10_2.5x1.0mm_P0.5mm",
+               {"Manufacturer": "Texas Instruments", "MPN": "TPD4E05U06DQAR (candidate)"}, ref_at=(x, 228.6), value_at=(x, 231.14))
+
+    # ---- uplink jack ----
+    s.text("J11: uplink port, the module's own Ethernet through a gigabit MagJack (green = activity, yellow = speed)", (622.3, 106.68))
+    s.part("Connector:RJ45_RB1-125B8G1A", "J11", "RB1-125B8G1A", (695.96, 152.4),
+           {"R2": "B_MDI0_P", "R3": "B_MDI0_N", "R4": "B_MDI1_P", "R5": "B_MDI1_N", "R6": "B_MDI2_P", "R7": "B_MDI2_N",
+            "R8": "B_MDI3_P", "R9": "B_MDI3_N", "R1": "B_CT", "R10": "GND", "SH": "GND",
+            "L3": "B_LED3_A", "L4": "B_LED3", "L1": "B_LED2_A", "L2": "B_LED2"},
+           "Connector_RJ:RJ45_UDE_RB1-125B8G1A", {"Manufacturer": "UDE", "MPN": "RB1-125B8G1A (candidate)"},
+           ref_at=(711.2, 121.92), value_at=(711.2, 124.46))
+
+    # ---- PHY core supply ----
+    s.text("U12: 1.2 V core supply for the PHY (220 mA at 1000BASE-T per the data sheet)", (601.98, 274.32))
+    s.part("Regulator_Switching:TLV62569DBV", "U12", "TLV62569DBV", (736.6, 241.3),
+           {"4": "+3V3", "1": "PHY_1V2_EN", "2": "GND", "3": "PHY_1V2_SW", "5": "PHY_1V2_FB"}, "Package_TO_SOT_SMD:SOT-23-5",
+           {"Manufacturer": "Texas Instruments", "MPN": "TLV62569DBVR"}, ref_at=(731.52, 228.6), value_at=(731.52, 231.14))
+
+    # ---- support parts ----
+    s.text("U11 supply and reference parts (LAN7801 schematic checklist): 10n on every supply pin, internal 1.2 V switcher, 2.5 V LDO",
+           (25.4, 266.7))
+    _row(s, 30.48, 297.18, [
+        *[(f"C{100 + i}", C, "10n", C0402, "+3V3", "GND") for i in range(7)],             # VDDVARIO x7
+        ("C107", C, "10n", C0402, "+3V3", "GND"), ("C108", C, "10n", C0402, "+3V3", "GND"),   # VDD33A, VDD33_REG_IN
+        ("C109", C, "10n", C0402, "+3V3", "GND"), ("C110", C, "10u 10V", C0805, "+3V3", "GND"),   # VDD_SW_IN + bulk
+        ("C111", C, "10n", C0402, "LAN_2V5", "GND"), ("C112", C, "1u", C0402, "LAN_2V5", "GND"),
+        ("L11", L, "3u3", "Inductor_SMD:L_1008_2520Metric", "LAN_SW", "LAN_1V2"),
+        ("C113", C, "10n", C0603, "LAN_1V2", "GND"), ("C114", C, "22u 6V3", C0805, "LAN_1V2", "GND"),
+        ("C115", C, "10n", C0402, "LAN_1V2", "GND"), ("C116", C, "10n", C0402, "LAN_1V2", "GND"),   # VDD12CORE x2
+        ("FB11", FB, "220R@100MHz", F0603, "LAN_1V2", "LAN_1V2A"),
+        ("C117", C, "1u", C0402, "LAN_1V2A", "GND"), *[(f"C{118 + i}", C, "10n", C0402, "LAN_1V2A", "GND") for i in range(3)],
+        ("C121", C, "1u", C0402, "LAN_FILT", "GND"), ("C122", C, "15p", C0402, "LAN_XI", "GND"),
+        ("C123", C, "15p", C0402, "LAN_XO", "GND")])
+    s.text("U11 resistors: RGMII series (starting value 10R from the checklist), bias, straps, pull-ups; USB 3 TX coupling capacitors",
+           (25.4, 325.12))
+    _row(s, 30.48, 355.6, [
+        *[(f"R{100 + i}", R, "10R", R0402, f"A_{sig}_MAC", f"A_{sig}") for i, sig in enumerate(RGMII_TX)],
+        ("R106", R, "1k5", R0402, "+3V3", "A_MDIO"), ("R107", R, "12k0 1%", R0402, "LAN_RBIAS", "GND"),
+        ("R108", R, "2k00 1%", R0402, "LAN_REXT", "GND"), ("R109", R, "1k", R0402, "+3V3", "LAN_VBUS_DET"),
+        ("R110", R, "10k", R0402, "LAN_CLK125", "GND"), ("R111", R, "10k", R0402, "LAN_EEDI", "GND"),
+        ("R112", R, "10k", R0402, "+3V3", "LAN_TDI"), ("R113", R, "10k", R0402, "+3V3", "LAN_TCK"),
+        ("R114", R, "10k", R0402, "+3V3", "LAN_TMS"), ("R115", R, "10k", R0402, "+3V3", "LAN_NRST"),
+        ("R116", R, "10k", R0402, "A_PHY_RST_N", "GND"),
+        ("C124", C, "100n", C0402, "LAN_SSTX_P", "USB3A_RX_P"), ("C125", C, "100n", C0402, "LAN_SSTX_N", "USB3A_RX_N")])
+    s.text("U10 resistors: RGMII series (starting value), ISET, straps (MODE 1110, PHYAD 001, no CLK125, ALLPHYAD 1)", (25.4, 381.0))
+    straps = [(f"R{140 + i}", R, "10k", R0402, net, rail) for i, (net, rail) in enumerate(PHY_STRAPS.items())]
+    _row(s, 30.48, 411.48, [
+        *[(f"R{117 + i}", R, "10R", R0402, f"A_{sig}_PHY", f"A_{sig}") for i, sig in enumerate(RGMII_RX)],
+        ("R123", R, "6k04 1%", R0402, "PHY_ISET", "GND"), *straps])
+    s.text("U10 supply decoupling (starting values: compare with Microchip's EVB-KSZ9131RNX schematic), crystal capacitors",
+           (25.4, 436.88))
+    _row(s, 30.48, 467.36, [
+        ("C130", C, "100n", C0402, "+3V3", "GND"), ("C131", C, "100n", C0402, "+3V3", "GND"),
+        ("C132", C, "10u 10V", C0805, "+3V3", "GND"),                                           # AVDDH
+        *[(f"C{133 + i}", C, "100n", C0402, "+3V3", "GND") for i in range(3)],                  # DVDDH
+        *[(f"C{136 + i}", C, "100n", C0402, "PHY_1V2", "GND") for i in range(5)],               # DVDDL
+        ("C141", C, "10u 6V3", C0805, "PHY_1V2", "GND"),
+        ("FB12", FB, "220R@100MHz", F0603, "PHY_1V2", "PHY_1V2A"),
+        ("C142", C, "100n", C0402, "PHY_1V2A", "GND"), ("C143", C, "100n", C0402, "PHY_1V2A", "GND"),
+        ("C144", C, "1u", C0402, "PHY_1V2A", "GND"),
+        ("FB13", FB, "220R@100MHz", F0603, "PHY_1V2", "PHY_1V2PLL"),
+        ("C145", C, "100n", C0402, "PHY_1V2PLL", "GND"), ("C146", C, "1u", C0402, "PHY_1V2PLL", "GND"),
+        ("C147", C, "15p", C0402, "PHY_XI", "GND"), ("C148", C, "15p", C0402, "PHY_XO", "GND")])
+    s.text("U12 parts: 0.6 V x (1 + 100k/100k) = 1.2 V; EN delayed by R/C so the core comes up after 3.3 V", (452.12, 325.12))
+    _row(s, 457.2, 355.6, [
+        ("C150", C, "10u 10V", C0805, "+3V3", "GND"), ("L12", L, "2u2", "Inductor_SMD:L_1008_2520Metric", "PHY_1V2_SW", "PHY_1V2"),
+        ("C151", C, "22u 6V3", C0805, "PHY_1V2", "GND"), ("R130", R, "100k 1%", R0402, "PHY_1V2", "PHY_1V2_FB"),
+        ("R131", R, "100k 1%", R0402, "PHY_1V2_FB", "GND"), ("R132", R, "100k", R0402, "+3V3", "PHY_1V2_EN"),
+        ("C152", C, "100n", C0402, "PHY_1V2_EN", "GND")])
+    s.text("J11 parts: LED resistors to the module's 3.3 V (LED pins sink 8 mA max), centre-tap capacitor", (452.12, 381.0))
+    _row(s, 457.2, 411.48, [
+        ("R133", R, "330R", R0402, "SOM_3V3", "B_LED3_A"), ("R134", R, "330R", R0402, "SOM_3V3", "B_LED2_A"),
+        ("C153", C, "100n", C0402, "B_CT", "GND")])
+    for i, net in enumerate(("LAN_1V2", "LAN_1V2A", "PHY_1V2", "PHY_1V2A", "PHY_1V2PLL")):
+        x = 467.36 + i * 15.24
+        s.part("power:PWR_FLAG", f"#FLG{10 + i}", "PWR_FLAG", (x, 457.2), {"1": net}, ref_at=(x, 452.12), value_at=(x, 449.58))
+
+    notes = (
+        "USB 3: the module has the AC coupling capacitors on its own TX pair (CM5 data sheet), so only our TX pair gets C124/C125.",
+        "RGMII delays: the Linux lan78xx driver asks the PHY driver for internal delays (RGMII-ID); no delay is built into the traces.",
+        "No EEPROM: EEDI is pulled down; the MAC address must be set by software. PME/wake pins and REFCLK_25 are unused.",
+        "LAN_NRST: pulled up, so U11 starts with the 3.3 V rail; GPIO6 on the module can pulse it (checklist: no RC reset).",
+        "PHY reset: R116 holds the PHY in reset until U11 drives PHY_RESET_N. The PHY needs 10 ms of stable supply first: bench check.",
+        "Crystals: 25 MHz, 3225, CL 10 pF, ESR <= 50 Ohm, +/-20 ppm; 15 pF loads assume about 3 pF of stray capacitance.",
+        "Strap polarity of ALLPHYAD (pull-up = 1) is assumed by analogy with the other straps; the data sheet text does not say.",
+        "J11: the jack joins its four PHY-side centre taps inside (pin R1); C153 takes them to ground, the usual practice for",
+        "voltage-mode PHYs (compare with the CM5 data sheet's Ethernet figure). The Port A magnetics (T1, sheet 1) need 100 nF",
+        "per centre tap for the KSZ9131. J11 shield and R10 (the jack's 75 Ohm / 1000 pF 2 kV termination return, placed among the",
+        "PHY-side pins by the maker) go to system ground, as on a laptop's LAN port: the barrier is the jack's transformer and",
+        "capacitor. Only the test port (J10, sheet 1) keeps the floating CHASSIS net.")
+    for i, line in enumerate(notes):
+        s.text(line, (25.4, 497.84 + i * 4.445), 1.5)
+
+
 # sheet title in the block netlist -> (file stem, builder)
-CAPTURED = {"Processor module, display, debug pads": ("05_processor_module", build_processor),
+CAPTURED = {"Test-port MAC and PHY, uplink port": ("02_test_port_mac_and_phy", build_test_port),
+            "Processor module, display, debug pads": ("05_processor_module", build_processor),
             "Coprocessor, keys, indicators": ("06_coprocessor", build_coprocessor),
             "Power: USB-C, charger, battery, rails": ("07_power", build_power)}

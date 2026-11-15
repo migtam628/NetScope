@@ -35,11 +35,15 @@ CX, CY = 150.0, 105.0          # board centre on the A4 page, mm
 
 
 FP_DIR = Path("/usr/share/kicad/footprints")
-TURN = {"J50": 180, "J51": 180}                           # back-side cable connectors: cable leaves at the bottom edge
+TURN = {"J50": 180, "J51": 180,                           # back-side cable connectors: cable leaves at the bottom edge
+        "J11": 0}                                           # back-side jack: plug opening at the top edge (FACING checks it)
 FACING = {ref: (lambda f, p: all(pcbnew.ToMM(pad.GetPosition().y) < CY - p[3] + 1.0          # pads inboard of the body
                                  for pad in f.Pads() if pad.GetNumber().isdigit())
                 and next(pad for pad in f.Pads() if pad.GetNumber() == "1").GetPosition().x > pt(p[2], 0).x)  # pin 1 on the right
           for ref in ("J50", "J51")}
+# the jack's LED pins sit near its opening, the signal pins at the back: LEDs must be nearer the top edge
+FACING["J11"] = lambda f, p: (max(pad.GetPosition().y for pad in f.Pads() if pad.GetNumber().startswith("L"))
+                              < min(pad.GetPosition().y for pad in f.Pads() if pad.GetNumber().startswith("R")))
 
 
 def read_netlist():

@@ -27,6 +27,10 @@
 - `tools/gridrouter.py`: the project's own two-layer grid router, used for the lower board. Low-speed boards only.
 - Block netlist: status LEDs no longer take a +3V3 supply pin (they are driven to ground from the coprocessor), and D30 pin 5 is left open. Floorplan: real courtyard sizes for the two FFC connectors and for D30 (now SOT-666).
 - RT-1 protection note corrected: the series resettable fuse preferred earlier cannot trip at the fault currents involved (12-57 mA) and is withdrawn. Rev A uses 2512 resistor footprints instead; surviving a passive injector is still open.
+- Main board, test-port Ethernet sheet captured for real: LAN7801 and KSZ9131RNX (pins from the data sheets), support parts per Microchip's LAN7801 checklist, PHY straps, 1.2 V buck for the PHY core, two crystals, two TVS arrays, uplink MagJack (UDE RB1-125B8G1A). 97 parts. Open: two IC exposed-pad sizes and the jack's LED polarity to confirm from drawings; RGMII series resistors and PHY decoupling are starting values.
+- Design changes found during that capture: uplink jack shield and termination return moved from the floating CHASSIS net to system ground (the jack's pin layout requires it; only the test port floats); Pulse JK0654219NL rejected (33 mm deep); J11 and U54 moved on the floorplan; D10 split into D10/D11; new block net LAN_NRST (module GPIO6 resets the USB Ethernet bridge).
+- Processor sheet: two items closed from the CM5 data sheet. RTC input range 2.5-3.5 V (the always-on 3.3 V is fine); GPIO2/3 have 1.8 k pull-ups on the module, so R81/R82 were removed.
+- `tools/check_kicad.py` tracks a third kind of open item: footprints that exist but must be confirmed against the maker's drawing.
 
 ## 0.1.0 - 2026-11-11
 
