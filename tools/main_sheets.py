@@ -173,8 +173,7 @@ C0805, C1206, R2512 = "Capacitor_SMD:C_0805_2012Metric", "Capacitor_SMD:C_1206_3
 NO_FOOTPRINT = {"U51": "KiCad's library has no footprint for the 2 x 2.5 mm 10-pin TDFN; to be drawn from the maker's land pattern",
                 "BT1": "battery connection (connector or solder pads) is decided with the pack supplier"}
 # Values deliberately left open, and why.
-OPEN_VALUES = {"R68": "boost compensation resistor: to be calculated from the data sheet procedure or TI's design tool",
-               "C76": "boost compensation capacitor: same"}
+OPEN_VALUES: dict[str, str] = {}             # R68 / C76 were open until tools/boost_loop.py
 REFINES.update({
     "VSYS": ("VSYS",), "VBAT": ("VBAT",), "+5V": ("+5V",), "+3V3": ("+3V3",), "BAT_NTC": ("BAT_NTC",),
     "BAT_NEG": ("GND",),                       # pack negative: joins ground through the 5 mOhm sense resistor
@@ -266,13 +265,17 @@ def build_power(s: Sheet) -> None:
         ("C72", C, "100n", C0402, "BOOST_BOOT", "BOOST_SW"), ("C73", C, "2u2", C0603, "BOOST_VCC", "GND"),
         ("C74", C, "47n", C0402, "BOOST_SS", "GND"), ("R65", R, "267k 1%", R0402, "BOOST_FSW", "BOOST_SW"),
         ("R66", R, "182k 1%", R0402, "+5V", "BOOST_FB"), ("R67", R, "56k 1%", R0402, "BOOST_FB", "GND"),
-        ("R68", R, "TBD", R0402, "BOOST_COMP", "BOOST_COMP_RC"), ("C76", C, "TBD", C0402, "BOOST_COMP_RC", "GND"),
+        ("R68", R, "6k19 1%", R0402, "BOOST_COMP", "BOOST_COMP_RC"), ("C76", C, "10n", C0402, "BOOST_COMP_RC", "GND"),
         ("R69", R, "100k 1%", R0402, "BOOST_ILIM", "GND"), ("C77", C, "22u 10V", C1206, "+5V", "GND"),
         ("C78", C, "22u 10V", C1206, "+5V", "GND"), ("C79", C, "22u 10V", C1206, "+5V", "GND")])
+    s.part(C, "C75", "10p", (256.54, 342.9), {"1": "BOOST_COMP", "2": "GND"}, C0402,
+           ref_at=(260.35, 341.63), value_at=(260.35, 344.17), dnp=True)
     for i, line in enumerate((
             "Output 1.204 V x (1 + 182k/56k) = 5.12 V. R65 targets about 600 kHz, from my reading of the data sheet equation.",
             "R69 = 100k sets the switch current limit near 11.9 A (MODE open: power-save mode at light load).",
-            "R68 / C76 (loop compensation) are NOT chosen: the data sheet has no 5 V example. The board must not be built with them open.")):
+            "R68 / C76 (loop compensation) from tools/boost_loop.py: current-mode model with the data sheet's GEA and Rsense,",
+            "phase margin >= 57 deg over 3.0-4.2 V, 0.3-4 A, 40-110 uF effective output. Calculated, not measured: load-step test.",
+            "C75 (DNP): optional high-frequency pole on COMP; the calculation gives about 13 pF, fit only if COMP picks up noise.")):
         s.text(line, (20.32, 363.22 + i * 3.81), 1.27)
 
     # ---- always-on 3.3 V ----

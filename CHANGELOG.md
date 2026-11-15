@@ -32,6 +32,7 @@
 - Processor sheet: two items closed from the CM5 data sheet. RTC input range 2.5-3.5 V (the always-on 3.3 V is fine); GPIO2/3 have 1.8 k pull-ups on the module, so R81/R82 were removed.
 - `tools/check_kicad.py` tracks a third kind of open item: footprints that exist but must be confirmed against the maker's drawing.
 - Main board, microSD reader sheet captured for real (option, all 20 parts marked DNP, footprints on the board): USB2244, 24 MHz crystal, Hirose DM3AT-SF-PEJM5 push-push socket, support parts per Microchip's USB2244 checklist. Block netlist correction: U60 is supplied from +3V3, not +5V. The data sheet's pin diagram and pin tables disagree on pins 23-26 (tables used; listed to confirm). Board tab for the socket widened from 15 to 17 mm.
+- Power sheet: boost loop compensation chosen (R68 6.19 k, C76 10 nF) with `tools/boost_loop.py`, a peak-current-mode model using the data sheet's GEA and sense resistance; at least 57 degrees of phase margin over battery voltage, load and output capacitance. Calculated, not measured. No values are left open on the captured sheets.
 
 ## 0.1.0 - 2026-11-11
 

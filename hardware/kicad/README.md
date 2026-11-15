@@ -96,8 +96,8 @@ Where the pins come from: the charger and the TLV62569 use KiCad's library symbo
 
 This sheet is not buildable yet. The checker lists what is open and fails if that list changes without the schematic changing with it:
 
-- **R68 and C76, the boost converter's loop compensation, have no values.** The data sheet's worked example is for 9 V out, and the procedure has to be run for 5.1 V.
-- **U51 (fuel gauge) has no footprint**: KiCad's library has none for its 2 x 2.5 mm 10-pin TDFN.
+- R68 and C76, the boost converter's loop compensation, are now **6.19 k and 10 nF**, from `tools/boost_loop.py`: the standard peak-current-mode boost model with the data sheet's error-amplifier transconductance (190 uA/V), internal sense resistance (0.08 Ohm) and 1.204 V reference. Across 3.0-4.2 V in, 0.3-4 A out and 40-110 uF of effective output capacitance it gives at least 57 degrees of phase margin and keeps the crossover at or below 0.13 of the right-half-plane zero. TI's own equations are images that could not be read here, so this is a calculation to confirm with WEBENCH and a load-step test, not a verified loop. C75 (10 pF, not fitted) is an optional high-frequency pole.
+- **U51 (fuel gauge) has no footprint**: it is a 2 x 2.5 mm, 0.4 mm-pitch 10-pin TDFN; KiCad's library has none, so it is to be drawn from Maxim's land pattern 90-100007.
 - **BT1 (battery connection) has no footprint**: connector or solder pads are decided with the pack supplier.
 
 Other values are data-sheet starting points, not a verified design: the boost frequency resistor (my reading of the data sheet equation, about 600 kHz), the charger's thermistor divider (data sheet values for a 103AT part; the pack's NTC is not known), inductors (candidates by rating and footprint, not confirmed in stock).
